@@ -26,6 +26,7 @@ public class TutorService {
         this.tutorProfileRepository = tutorProfileRepository;
     }
 
+    @SuppressWarnings("null")
     public Page<TutorSearchResponseDTO> searchTutors(
             String query,
             String subject,

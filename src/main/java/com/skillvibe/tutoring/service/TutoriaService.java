@@ -27,6 +27,7 @@ public class TutoriaService {
         this.tutorProfileRepository = tutorProfileRepository;
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public Tutoria reservarTutoria(Long studentId, BookingRequestDTO request) {
         log.info("Procesando reserva para el estudiante: {} con tutor: {}", studentId, request.getTutorId());
@@ -64,6 +65,7 @@ public class TutoriaService {
     }
 
     // 1. Programar y Cobrar al Estudiante
+    @SuppressWarnings("null")
     @Transactional
     public Tutoria guardarTutoria(Tutoria tutoria) {
         User estudiante = userRepository.findById(tutoria.getEstudiante().getId())
@@ -94,6 +96,7 @@ public class TutoriaService {
     }
 
     // 3. ✨ EL MÉTODO QUE FALTABA: FINALIZAR Y PAGAR AL TUTOR
+    @SuppressWarnings("null")
     @Transactional
     public Tutoria finalizarTutoria(Long tutoriaId) {
         // Buscamos la tutoría

@@ -32,6 +32,8 @@ public class TutorProfile {
     @Column(nullable = false)
     private String degreeUrl;
 
+    private String credentialsUrl;
+
     @Column(nullable = false)
     private Double hourlyRate;
 

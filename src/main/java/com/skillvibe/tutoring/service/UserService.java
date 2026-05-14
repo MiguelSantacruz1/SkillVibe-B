@@ -22,6 +22,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @SuppressWarnings("null")
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
