@@ -30,4 +30,11 @@ public class User {
 
     @JsonProperty("balance")
     private Double balance = 0.0;
+
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @org.hibernate.annotations.UpdateTimestamp
+    private java.time.LocalDateTime updatedAt;
 }

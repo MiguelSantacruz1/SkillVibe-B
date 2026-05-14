@@ -27,4 +27,11 @@ public class Tutoria {
     private User estudiante;
 
     private String estado; // "PROGRAMADA", "EN_CURSO", "FINALIZADA"
+
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @org.hibernate.annotations.UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

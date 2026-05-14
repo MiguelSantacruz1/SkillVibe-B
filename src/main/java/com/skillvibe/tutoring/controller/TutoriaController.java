@@ -23,24 +23,36 @@ public class TutoriaController {
         this.tutoriaService = tutoriaService;
     }
 
-    @Operation(summary = "Programar una nueva clase", description = "Solo accesible para usuarios con rol TUTOR. Descuenta el precio del balance del estudiante.")
+    @Operation(summary = "Programar una nueva clase (Manual)", description = "Solo accesible para usuarios con rol TUTOR. Descuenta el precio del balance del estudiante.")
     @PostMapping("/programar")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<Tutoria> crearTutoria(@RequestBody Tutoria tutoria) {
-        return ResponseEntity.ok(tutoriaService.guardarTutoria(tutoria));
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<Tutoria>> crearTutoria(@RequestBody Tutoria tutoria) {
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Tutoría programada con éxito", tutoriaService.guardarTutoria(tutoria)));
+    }
+
+    @Operation(summary = "Reservar una tutoría (Estudiante)", description = "Permite a un estudiante reservar una clase. Valida saldo y obtiene el precio del perfil del tutor.")
+    @PostMapping("/reservar")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<Tutoria>> reservar(
+            @RequestBody com.skillvibe.tutoring.dto.BookingRequestDTO request,
+            org.springframework.security.core.Authentication authentication
+    ) {
+        // Obtenemos el usuario autenticado (asumiendo que el Principal es el User de nuestro modelo o tiene el ID)
+        com.skillvibe.tutoring.model.User currentUser = (com.skillvibe.tutoring.model.User) authentication.getPrincipal();
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Reserva realizada con éxito", tutoriaService.reservarTutoria(currentUser.getId(), request)));
     }
 
     @Operation(summary = "Ver el tablero de actividades", description = "Muestra todas las tutorías asociadas a un usuario (como tutor o como estudiante).")
     @GetMapping("/mi-tablero/{userId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Tutoria>> obtenerTablero(@PathVariable Long userId) {
-        return ResponseEntity.ok(tutoriaService.listarPorUsuario(userId));
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<List<Tutoria>>> obtenerTablero(@PathVariable Long userId) {
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Tablero obtenido con éxito", tutoriaService.listarPorUsuario(userId)));
     }
 
     @Operation(summary = "Finalizar clase y pagar al tutor", description = "Cambia el estado a FINALIZADA y suma el valor de la clase al balance del tutor.")
     @PutMapping("/{id}/finalizar")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<Tutoria> finalizar(@PathVariable Long id) {
-        return ResponseEntity.ok(tutoriaService.finalizarTutoria(id));
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<Tutoria>> finalizar(@PathVariable Long id) {
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Clase finalizada correctamente", tutoriaService.finalizarTutoria(id)));
     }
 }
