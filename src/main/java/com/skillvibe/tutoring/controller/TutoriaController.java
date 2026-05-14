@@ -5,6 +5,7 @@ import com.skillvibe.tutoring.service.TutoriaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.skillvibe.tutoring.security.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,16 +31,14 @@ public class TutoriaController {
         return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Tutoría programada con éxito", tutoriaService.guardarTutoria(tutoria)));
     }
 
-    @Operation(summary = "Reservar una tutoría (Estudiante)", description = "Permite a un estudiante reservar una clase. Valida saldo y obtiene el precio del perfil del tutor.")
     @PostMapping("/reservar")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<Tutoria>> reservar(
             @RequestBody com.skillvibe.tutoring.dto.BookingRequestDTO request,
             org.springframework.security.core.Authentication authentication
     ) {
-        // Obtenemos el usuario autenticado (asumiendo que el Principal es el User de nuestro modelo o tiene el ID)
-        com.skillvibe.tutoring.model.User currentUser = (com.skillvibe.tutoring.model.User) authentication.getPrincipal();
-        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Reserva realizada con éxito", tutoriaService.reservarTutoria(currentUser.getId(), request)));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Reserva realizada con éxito", tutoriaService.reservarTutoria(principal.getId(), request)));
     }
 
     @Operation(summary = "Ver el tablero de actividades", description = "Muestra todas las tutorías asociadas a un usuario (como tutor o como estudiante).")

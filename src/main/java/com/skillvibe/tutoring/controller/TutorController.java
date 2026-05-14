@@ -2,6 +2,7 @@ package com.skillvibe.tutoring.controller;
 
 import com.skillvibe.tutoring.dto.ApiResponse;
 import com.skillvibe.tutoring.dto.TutorSearchResponseDTO;
+import com.skillvibe.tutoring.security.UserPrincipal;
 import com.skillvibe.tutoring.service.TutorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,8 +49,8 @@ public class TutorController {
     public ResponseEntity<ApiResponse<com.skillvibe.tutoring.model.TutorProfile>> getMyProfile(
             org.springframework.security.core.Authentication authentication
     ) {
-        com.skillvibe.tutoring.model.User currentUser = (com.skillvibe.tutoring.model.User) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Perfil obtenido", tutorService.getProfileByUserId(currentUser.getId())));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success("Perfil obtenido", tutorService.getProfileByUserId(principal.getId())));
     }
 
     @Operation(summary = "Actualizar mi perfil de tutor", description = "Solo accesible para usuarios con rol TUTOR.")
@@ -59,8 +60,8 @@ public class TutorController {
             @RequestBody com.skillvibe.tutoring.dto.TutorProfileUpdateDTO updateDTO,
             org.springframework.security.core.Authentication authentication
     ) {
-        com.skillvibe.tutoring.model.User currentUser = (com.skillvibe.tutoring.model.User) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Perfil actualizado con éxito", tutorService.updateProfile(currentUser.getId(), updateDTO)));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success("Perfil actualizado con éxito", tutorService.updateProfile(principal.getId(), updateDTO)));
     }
 
     @GetMapping("/panel")

@@ -3,7 +3,9 @@ package com.skillvibe.tutoring.controller;
 import com.skillvibe.tutoring.dto.ApiResponse;
 import com.skillvibe.tutoring.model.Transaccion;
 import com.skillvibe.tutoring.model.User;
+import com.skillvibe.tutoring.security.UserPrincipal;
 import com.skillvibe.tutoring.service.PagoService;
+import com.skillvibe.tutoring.service.UserService;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
@@ -25,18 +27,23 @@ import java.util.Map;
 public class PagoController {
 
     private final PagoService pagoService;
+    private final UserService userService;
 
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
 
-    public PagoController(PagoService pagoService) {
+    public PagoController(PagoService pagoService, UserService userService) {
         this.pagoService = pagoService;
+        this.userService = userService;
     }
 
     @PostMapping("/checkout")
     @Operation(summary = "Crear sesión de pago en Stripe")
     public ResponseEntity<ApiResponse<String>> createCheckout(@RequestBody Map<String, Double> payload, Authentication auth) throws Exception {
-        User user = (User) auth.getPrincipal();
+        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+        // Cargamos el objeto User real solo porque PagoService lo necesita para Stripe
+        User user = userService.findById(principal.getId());
+        
         Double amount = payload.get("amount");
         String url = pagoService.createCheckoutSession(user, amount);
         return ResponseEntity.ok(ApiResponse.success("URL de pago generada", url));
@@ -45,8 +52,8 @@ public class PagoController {
     @GetMapping("/historial")
     @Operation(summary = "Obtener historial de transacciones")
     public ResponseEntity<ApiResponse<List<Transaccion>>> getHistorial(Authentication auth) {
-        User user = (User) auth.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Historial recuperado", pagoService.getHistory(user.getId())));
+        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success("Historial recuperado", pagoService.getHistory(principal.getId())));
     }
 
     @PostMapping("/webhook")

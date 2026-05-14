@@ -42,18 +42,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtService.isTokenValid(jwt)) {
 
-                // 1. Extraemos el rol que guardamos en el Token
+                // 1. Extraemos el rol y el ID que guardamos en el Token
                 String role = jwtService.extractRole(jwt);
+                Long userId = jwtService.extractUserId(jwt);
 
                 // 2. Creamos la "Authority" (permiso).
-                // Spring Security necesita que empiece por "ROLE_" para usar hasRole()
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
-                // 3. Creamos el token de autenticación incluyendo el permiso
+                // 3. Creamos el Principal (DTO Senior)
+                UserPrincipal principal = UserPrincipal.builder()
+                        .id(userId)
+                        .email(userEmail)
+                        .authorities(List.of(authority))
+                        .build();
+
+                // 4. Creamos el token de autenticación usando el principal
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userEmail,
+                        principal,
                         null,
-                        List.of(authority) // <-- Ahora el guardia sabe qué "rango" tienes
+                        principal.getAuthorities()
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
