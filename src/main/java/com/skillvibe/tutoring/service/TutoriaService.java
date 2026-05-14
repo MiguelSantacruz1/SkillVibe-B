@@ -20,11 +20,13 @@ public class TutoriaService {
     private final TutoriaRepository tutoriaRepository;
     private final UserRepository userRepository;
     private final TutorProfileRepository tutorProfileRepository;
+    private final com.skillvibe.tutoring.repository.TransaccionRepository transaccionRepository;
 
-    public TutoriaService(TutoriaRepository tutoriaRepository, UserRepository userRepository, TutorProfileRepository tutorProfileRepository) {
+    public TutoriaService(TutoriaRepository tutoriaRepository, UserRepository userRepository, TutorProfileRepository tutorProfileRepository, com.skillvibe.tutoring.repository.TransaccionRepository transaccionRepository) {
         this.tutoriaRepository = tutoriaRepository;
         this.userRepository = userRepository;
         this.tutorProfileRepository = tutorProfileRepository;
+        this.transaccionRepository = transaccionRepository;
     }
 
     @SuppressWarnings("null")
@@ -47,6 +49,14 @@ public class TutoriaService {
         // Descontar saldo
         estudiante.setBalance(estudiante.getBalance() - precio);
         userRepository.save(estudiante);
+
+        // Registrar transacción de salida para el alumno
+        transaccionRepository.save(com.skillvibe.tutoring.model.Transaccion.builder()
+                .user(estudiante)
+                .amount(precio)
+                .type(com.skillvibe.tutoring.model.Transaccion.TransactionType.PAYMENT)
+                .description("Pago por tutoría de " + request.getMateria())
+                .build());
 
         // Crear la tutoría
         Tutoria tutoria = new Tutoria();
@@ -115,6 +125,14 @@ public class TutoriaService {
         User tutor = tutoria.getTutor();
         tutor.setBalance(tutor.getBalance() + tutoria.getPrecio());
         userRepository.save(tutor);
+
+        // Registrar transacción de entrada para el tutor
+        transaccionRepository.save(com.skillvibe.tutoring.model.Transaccion.builder()
+                .user(tutor)
+                .amount(tutoria.getPrecio())
+                .type(com.skillvibe.tutoring.model.Transaccion.TransactionType.REFUND) // En este contexto es ingreso por servicio
+                .description("Ingreso por tutoría finalizada: " + tutoria.getMateria())
+                .build());
 
         log.info("-----> CLASE FINALIZADA. PAGO REALIZADO AL TUTOR: {}", tutor.getFullName());
 
