@@ -153,7 +153,7 @@ public class TutoringClassService {
     // ─────────────────────────────────────────────
     public List<TutoringClass> listByUser(Long userId) {
         List<TutoringClass> comoTutor = TutoringClassRepository.findByTutorId(userId);
-        List<TutoringClass> comoEstudiante = TutoringClassRepository.findByEstudianteId(userId);
+        List<TutoringClass> comoEstudiante = TutoringClassRepository.findByStudentId(userId);
         comoTutor.addAll(comoEstudiante);
         return comoTutor;
     }

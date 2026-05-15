@@ -10,5 +10,5 @@ public interface TutoringClassRepository extends JpaRepository<TutoringClass, Lo
     List<TutoringClass> findByTutorId(Long tutorId);
 
     // Buscar tutorías donde el usuario sea el ESTUDIANTE
-    List<TutoringClass> findByEstudianteId(Long estudianteId);
+    List<TutoringClass> findByStudentId(Long studentId);
 }

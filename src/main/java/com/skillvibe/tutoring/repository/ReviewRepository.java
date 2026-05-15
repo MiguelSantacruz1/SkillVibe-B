@@ -16,10 +16,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByTutorIdOrderByCreatedAtDesc(Long tutorId);
 
     /** Buscar reseña específica de un estudiante sobre una tutoría (para evitar duplicados) */
-    Optional<Review> findByEstudianteIdAndTutoriaId(Long estudianteId, Long tutoriaId);
+    Optional<Review> findByStudentIdAndTutoringClassId(Long studentId, Long tutoringClassId);
 
     /** Verifica si ya existe una reseña para esa tutoría */
-    boolean existsByTutoriaId(Long tutoriaId);
+    boolean existsByTutoringClassId(Long tutoringClassId);
 
     /** Promedio de rating de un tutor (para recálculo) */
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.tutor.id = :tutorId")

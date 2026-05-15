@@ -5,19 +5,23 @@ import com.skillvibe.tutoring.model.User;
 /**
  * Interfaz del Patrón Strategy para procesadores de pago.
  *
- * Define el contrato que cualquier proveedor de pago (Stripe, PayPal, etc.)
- * debe cumplir. PaymentService depende de esta abstracción, no de una
- * implementación concreta, respetando el principio de Inversión de Dependencias.
+ * Define el contrato que cualquier proveedor de pago debe cumplir.
+ * PaymentService depende de esta abstracción (no de una implementación concreta),
+ * respetando el Principio de Inversión de Dependencias (SOLID - DIP).
+ *
+ * Implementación activa: {@link WompiPaymentProcessor} (Wompi Colombia - COP).
  */
 public interface PaymentProcessor {
 
     /**
-     * Crea una sesión de checkout (URL de pago) para el usuario.
+     * Crea un enlace de pago (checkout URL) para el usuario.
      *
-     * @param user   El usuario que realiza la recarga.
-     * @param amount El monto en USD a recargar.
-     * @return URL de la sesión de pago hacia la que redirigir al usuario.
-     * @throws Exception si el proveedor de pago falla.
+     * @param user   El usuario que realiza la recarga de saldo.
+     * @param amount El monto en COP (pesos colombianos) a recargar.
+     *               Ejemplo: 50000.0 = $50.000 COP
+     * @return URL del checkout hacia la que redirigir al usuario.
+     * @throws RuntimeException si el proveedor de pago falla.
      */
-    String createCheckoutSession(User user, Double amount) throws Exception;
+    String createCheckoutSession(User user, Double amount);
 }
+

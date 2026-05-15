@@ -76,7 +76,7 @@ public class ReviewService {
         }
 
         // Regla 3: no se puede calificar dos veces la misma tutoría
-        if (reviewRepository.existsByTutoriaId(dto.getTutoriaId())) {
+        if (reviewRepository.existsByTutoringClassId(dto.getTutoriaId())) {
             throw new BusinessLogicException("Ya existe una reseña para esta tutoría.");
         }
 

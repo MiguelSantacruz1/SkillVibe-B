@@ -24,14 +24,16 @@ public class TutorProfile {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
+    @Column(columnDefinition = "TEXT")
     private String profilePictureUrl;
     
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String identityCardUrl;
     
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String degreeUrl;
 
+    @Column(columnDefinition = "TEXT")
     private String credentialsUrl;
 
     @Column(nullable = false)

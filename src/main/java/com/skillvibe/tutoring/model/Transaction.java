@@ -29,7 +29,9 @@ public class Transaction {
     @Column(nullable = false)
     private String description;
 
-    private String stripePaymentId;
+    /** ID externo de la transacción en la pasarela de pagos (ej. Wompi transaction ID). */
+    @Column(name = "external_payment_id")
+    private String externalPaymentId;
 
     @CreationTimestamp
     @Column(updatable = false)

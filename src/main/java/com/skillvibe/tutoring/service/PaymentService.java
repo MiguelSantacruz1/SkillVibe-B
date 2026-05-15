@@ -12,13 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Servicio de pagos refactorizado con el Patrón Strategy.
+ * Servicio de pagos con Patrón Strategy.
  *
- * PaymentService ya NO conoce la SDK de Stripe. En su lugar, depende de
- * la interfaz PaymentProcessor, que actualmente tiene como implementación
- * StripePaymentProcessor. Para agregar PayPal, solo se necesita:
- *   1. Crear PayPalPaymentProcessor implements PaymentProcessor.
- *   2. Cambiar la inyección en el contexto de Spring (ej. @Qualifier).
+ * PaymentService NO conoce los detalles de ninguna pasarela de pago.
+ * Delega toda la lógica de pago a la implementación activa de {@link PaymentProcessor},
+ * actualmente {@code WompiPaymentProcessor} (Wompi Colombia - COP).
+ *
+ * Para cambiar de pasarela, solo se necesita:
+ *   1. Crear otra implementación de PaymentProcessor.
+ *   2. Marcarla con @Primary o usar @Qualifier en la inyección.
  */
 @Slf4j
 @Service
@@ -38,53 +40,57 @@ public class PaymentService {
     }
 
     /**
-     * Crea una sesión de pago delegando al PaymentProcessor activo (Stripe).
+     * Crea un enlace de pago en Wompi delegando al PaymentProcessor activo.
      *
      * @param user   Usuario que realiza la recarga.
-     * @param amount Monto en USD.
-     * @return URL de la sesión de checkout.
+     * @param amount Monto en COP (pesos colombianos). Ej: 50000.0 = $50.000 COP
+     * @return URL del checkout de Wompi.
      */
-    public String createCheckoutSession(User user, Double amount) throws Exception {
-        log.info("Iniciando checkout para usuario: {} por ${}", user.getEmail(), amount);
-        // ── Strategy: llamada al procesador de pago activo ──
+    public String createCheckoutSession(User user, Double amount) {
+        log.info("Iniciando checkout para usuario: {} por ${} COP", user.getEmail(), amount);
         return paymentProcessor.createCheckoutSession(user, amount);
     }
 
     /**
-     * Procesa un pago exitoso (llamado por el webhook / endpoint de éxito).
-     * Acredita el saldo al usuario y registra la transacción.
+     * Procesa un pago exitoso confirmado por el webhook de Wompi.
+     * Acredita el saldo al usuario y registra la transacción en BD.
      *
-     * NOTA: Pendiente de implementar validación de firma de Stripe Webhook
-     * para prevenir pagos simulados fraudulentamente.
+     * La verificación de la firma SHA-256 se realiza en el PaymentController
+     * ANTES de llamar a este método, garantizando que solo pagos legítimos
+     * de Wompi lleguen aquí (no fraudes).
+     *
+     * @param userId         ID del usuario al que acreditar el saldo.
+     * @param amount         Monto en COP a acreditar.
+     * @param wompiPaymentId ID de la transacción en Wompi.
      */
     @SuppressWarnings("null")
     @Transactional
-    public void processSuccessfulPayment(String userId, String amount, String paymentId) {
+    public void processSuccessfulPayment(String userId, Double amount, String wompiPaymentId) {
         Long uId = Long.parseLong(userId);
-        Double amt = Double.parseDouble(amount);
 
         User user = userRepository.findById(uId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + uId));
 
-        // Actualizar balance
-        user.setBalance(user.getBalance() + amt);
+        // Acreditar saldo en COP
+        user.setBalance(user.getBalance() + amount);
         userRepository.save(user);
 
-        // Registrar transacción de recarga
+        // Registrar transacción
         Transaction transaction = Transaction.builder()
                 .user(user)
-                .amount(amt)
+                .amount(amount)
                 .type(Transaction.TransactionType.LOAD)
-                .description("Recarga de saldo vía Stripe")
-                .stripePaymentId(paymentId)
+                .description("Recarga de saldo via Wompi - $" + amount.longValue() + " COP")
+                .externalPaymentId(wompiPaymentId)
                 .build();
 
         transactionRepository.save(transaction);
-        log.info("Pago procesado con éxito para el usuario {}: +${}", user.getFullName(), amt);
+        log.info("Pago Wompi procesado para {}: +${} COP (transaccion: {})",
+                user.getFullName(), amount, wompiPaymentId);
     }
 
     /**
-     * Devuelve el historial de Transactiones de un usuario.
+     * Devuelve el historial de transacciones de un usuario, ordenado del mas reciente al mas antiguo.
      */
     public List<Transaction> getHistory(Long userId) {
         return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
