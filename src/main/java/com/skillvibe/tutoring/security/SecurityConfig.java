@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Puertas abiertas
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/tutor/search", "/api/reviews/tutor/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Todo lo demás protegido
                         .anyRequest().authenticated()
