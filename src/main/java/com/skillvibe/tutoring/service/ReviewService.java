@@ -12,6 +12,7 @@ import com.skillvibe.tutoring.repository.ReviewRepository;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
 import com.skillvibe.tutoring.repository.TutoriaRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
+import com.skillvibe.tutoring.model.Notification.NotificationType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +27,18 @@ public class ReviewService {
     private final TutoriaRepository tutoriaRepository;
     private final TutorProfileRepository tutorProfileRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ReviewService(ReviewRepository reviewRepository,
                          TutoriaRepository tutoriaRepository,
                          TutorProfileRepository tutorProfileRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         NotificationService notificationService) {
         this.reviewRepository = reviewRepository;
         this.tutoriaRepository = tutoriaRepository;
         this.tutorProfileRepository = tutorProfileRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -80,6 +84,13 @@ public class ReviewService {
 
         // Recalcular el rating promedio del tutor de forma atómica
         recalcularRatingTutor(tutoria.getTutor().getId());
+
+        // Notificar al tutor sobre la nueva reseña
+        notificationService.enviarNotificacion(
+                tutoria.getTutor().getId(),
+                NotificationType.REVIEW,
+                "Has recibido una nueva reseña de " + estudiante.getFullName() + " con calificación " + dto.getRating() + " estrellas."
+        );
 
         log.info("Reseña creada para la tutoría {} con rating {}", dto.getTutoriaId(), dto.getRating());
         return new ReviewResponseDTO(savedReview);

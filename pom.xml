@@ -92,6 +92,11 @@
             <artifactId>stripe-java</artifactId>
             <version>25.8.0</version>
         </dependency>
+        <!-- WebSocket + STOMP para notificaciones en tiempo real -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
