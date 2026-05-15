@@ -46,6 +46,7 @@ public class NotificationService {
      * @param type    Tipo de notificación (BOOKING, REVIEW, etc.)
      * @param message Texto de la notificación
      */
+    @SuppressWarnings("null")
     @Transactional
     public void enviarNotificacion(Long userId, NotificationType type, String message) {
         User user = userRepository.findById(userId)
@@ -98,6 +99,7 @@ public class NotificationService {
     /**
      * Marca todas las notificaciones de un usuario como leídas.
      */
+    @SuppressWarnings("null")
     @Transactional
     public void markAllAsRead(Long userId) {
         notificationRepository.markAllAsReadByUserId(userId);

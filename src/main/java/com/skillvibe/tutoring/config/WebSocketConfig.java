@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
+    public void configureMessageBroker(@org.springframework.lang.NonNull MessageBrokerRegistry registry) {
         // Broker en memoria para colas personales (/queue) y topics (/topic)
         registry.enableSimpleBroker("/queue", "/topic");
         // Prefijo para mensajes enviados desde el cliente al servidor
@@ -36,14 +36,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
+    public void registerStompEndpoints(@org.springframework.lang.NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*") // CORS controlado por SecurityConfig
                 .withSockJS();                  // Fallback para navegadores que no soportan WebSocket nativo
     }
 
     @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
+    public void configureClientInboundChannel(@org.springframework.lang.NonNull ChannelRegistration registration) {
         // Registrar el interceptor JWT en el canal de entrada
         registration.interceptors(authInterceptor);
     }

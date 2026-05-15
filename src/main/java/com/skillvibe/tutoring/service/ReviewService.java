@@ -49,6 +49,7 @@ public class ReviewService {
      *  3. Solo se permite 1 reseña por tutoría.
      * Al finalizar, recalcula el averageRating del tutor de forma atómica.
      */
+    @SuppressWarnings("null")
     @Transactional
     public ReviewResponseDTO crearReview(Long studentId, CreateReviewDTO dto) {
         Tutoria tutoria = tutoriaRepository.findById(dto.getTutoriaId())
@@ -99,6 +100,7 @@ public class ReviewService {
     /**
      * Obtiene todas las reseñas públicas de un tutor, ordenadas por más recientes.
      */
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public List<ReviewResponseDTO> getReviewsByTutor(Long tutorId) {
         return reviewRepository.findByTutorIdOrderByCreatedAtDesc(tutorId)

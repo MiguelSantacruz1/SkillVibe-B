@@ -52,6 +52,7 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public TutorProfileResponseDTO verifyTutor(Long tutorProfileId, AdminVerifyDTO dto) {
         TutorProfile profile = tutorProfileRepository.findById(tutorProfileId)
