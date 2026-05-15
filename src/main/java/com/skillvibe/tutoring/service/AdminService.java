@@ -83,7 +83,7 @@ public class AdminService {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
         stats.put("totalTutors", tutorProfileRepository.count());
-        stats.put("totalTutorias", TutoringClassRepository.count());
+        stats.put("totalClasses", TutoringClassRepository.count());
         return stats;
     }
 }
