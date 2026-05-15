@@ -6,15 +6,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "tutorias")
-public class Tutoria {
+@Table(name = "tutoringClasses")
+public class TutoringClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String materia;
-    private String descripcion;
-    private Double precio; // <--- NUEVO: Cuánto cuesta la clase
+    private String subject;
+    private String description;
+    private Double price; // <--- NUEVO: Cuánto cuesta la clase
     private LocalDateTime fechaHora;
     private String meetingLink;
 
@@ -24,9 +24,10 @@ public class Tutoria {
 
     @ManyToOne
     @JoinColumn(name = "estudiante_id")
-    private User estudiante;
+    private User student;
 
-    private String estado; // "PROGRAMADA", "EN_CURSO", "FINALIZADA"
+    @Enumerated(EnumType.STRING)
+    private ClassStatus status; // PROGRAMMED → IN_PROGRESS → COMPLETED | CANCELLED
 
     @org.hibernate.annotations.CreationTimestamp
     @Column(updatable = false)

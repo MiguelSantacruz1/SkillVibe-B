@@ -5,12 +5,12 @@ import com.skillvibe.tutoring.dto.ReviewResponseDTO;
 import com.skillvibe.tutoring.exception.BusinessLogicException;
 import com.skillvibe.tutoring.model.Review;
 import com.skillvibe.tutoring.model.TutorProfile;
-import com.skillvibe.tutoring.model.Tutoria;
+import com.skillvibe.tutoring.model.TutoringClass;
 import com.skillvibe.tutoring.model.User;
-import com.skillvibe.tutoring.model.Notification.NotificationType;
+
 import com.skillvibe.tutoring.repository.ReviewRepository;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
-import com.skillvibe.tutoring.repository.TutoriaRepository;
+import com.skillvibe.tutoring.repository.TutoringClassRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,17 +30,17 @@ import static org.mockito.Mockito.*;
 class ReviewServiceTest {
 
     @Mock private ReviewRepository reviewRepository;
-    @Mock private TutoriaRepository tutoriaRepository;
+    @Mock private TutoringClassRepository tutoringClassRepository;
     @Mock private TutorProfileRepository tutorProfileRepository;
     @Mock private UserRepository userRepository;
-    @Mock private NotificationService notificationService;
+    @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ReviewService reviewService;
 
     private User student;
     private User tutorUser;
-    private Tutoria tutoria;
+    private TutoringClass tutoringClass;
     private TutorProfile tutorProfile;
 
     @BeforeEach
@@ -51,10 +51,10 @@ class ReviewServiceTest {
         tutorUser = new User();
         tutorUser.setId(2L);
 
-        tutoria = new Tutoria();
-        tutoria.setId(10L);
-        tutoria.setEstudiante(student);
-        tutoria.setTutor(tutorUser);
+        tutoringClass = new TutoringClass();
+        tutoringClass.setId(10L);
+        tutoringClass.setStudent(student);
+        tutoringClass.setTutor(tutorUser);
         
         tutorProfile = new TutorProfile();
         tutorProfile.setId(1L);
@@ -64,11 +64,11 @@ class ReviewServiceTest {
     @Test
     void crearReview_whenTutoriaNotFinalizada_throwsException() {
         // Arrange
-        tutoria.setEstado("PROGRAMADA");
+        tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.PROGRAMMED);
         CreateReviewDTO dto = new CreateReviewDTO();
         dto.setTutoriaId(10L);
 
-        when(tutoriaRepository.findById(10L)).thenReturn(Optional.of(tutoria));
+        when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
 
         // Act & Assert
         BusinessLogicException ex = assertThrows(BusinessLogicException.class, () -> {
@@ -80,11 +80,11 @@ class ReviewServiceTest {
     @Test
     void crearReview_whenDuplicate_throwsException() {
         // Arrange
-        tutoria.setEstado("FINALIZADA");
+        tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
         CreateReviewDTO dto = new CreateReviewDTO();
         dto.setTutoriaId(10L);
 
-        when(tutoriaRepository.findById(10L)).thenReturn(Optional.of(tutoria));
+        when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
         when(reviewRepository.existsByTutoriaId(10L)).thenReturn(true);
 
         // Act & Assert
@@ -97,13 +97,13 @@ class ReviewServiceTest {
     @Test
     void crearReview_updatesAverageRating() {
         // Arrange
-        tutoria.setEstado("FINALIZADA");
+        tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
         CreateReviewDTO dto = new CreateReviewDTO();
         dto.setTutoriaId(10L);
         dto.setRating(5);
         dto.setComment("Great!");
 
-        when(tutoriaRepository.findById(10L)).thenReturn(Optional.of(tutoria));
+        when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
         when(reviewRepository.existsByTutoriaId(10L)).thenReturn(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(student));
         
@@ -111,9 +111,9 @@ class ReviewServiceTest {
         savedReview.setId(100L);
         savedReview.setRating(5);
         savedReview.setComment("Great!");
-        savedReview.setEstudiante(student);
+        savedReview.setStudent(student);
         savedReview.setTutor(tutorUser);
-        savedReview.setTutoria(tutoria);
+        savedReview.setTutoringClass(tutoringClass);
         
         when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
         
@@ -132,6 +132,6 @@ class ReviewServiceTest {
         assertEquals(4.5, tutorProfile.getAverageRating());
         assertEquals(2, tutorProfile.getTotalReviews());
         
-        verify(notificationService).enviarNotificacion(eq(tutorUser.getId()), eq(NotificationType.REVIEW), anyString());
+        verify(eventPublisher).publishEvent(any(com.skillvibe.tutoring.event.ReviewCreatedEvent.class));
     }
 }

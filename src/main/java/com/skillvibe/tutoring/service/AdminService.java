@@ -6,7 +6,7 @@ import com.skillvibe.tutoring.exception.ResourceNotFoundException;
 import com.skillvibe.tutoring.model.Notification.NotificationType;
 import com.skillvibe.tutoring.model.TutorProfile;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
-import com.skillvibe.tutoring.repository.TutoriaRepository;
+import com.skillvibe.tutoring.repository.TutoringClassRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,16 +24,16 @@ public class AdminService {
     private final TutorProfileRepository tutorProfileRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
-    private final TutoriaRepository tutoriaRepository;
+    private final TutoringClassRepository TutoringClassRepository;
 
     public AdminService(TutorProfileRepository tutorProfileRepository,
                         NotificationService notificationService,
                         UserRepository userRepository,
-                        TutoriaRepository tutoriaRepository) {
+                        TutoringClassRepository TutoringClassRepository) {
         this.tutorProfileRepository = tutorProfileRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
-        this.tutoriaRepository = tutoriaRepository;
+        this.TutoringClassRepository = TutoringClassRepository;
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +83,7 @@ public class AdminService {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
         stats.put("totalTutors", tutorProfileRepository.count());
-        stats.put("totalTutorias", tutoriaRepository.count());
+        stats.put("totalTutorias", TutoringClassRepository.count());
         return stats;
     }
 }

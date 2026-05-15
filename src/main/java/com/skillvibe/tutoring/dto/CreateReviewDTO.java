@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 /**
- * DTO para crear una calificación y reseña sobre una tutoría finalizada.
+ * DTO para crear una calificación y reseña sobre una tutoría COMPLETED.
  */
 @Data
 public class CreateReviewDTO {

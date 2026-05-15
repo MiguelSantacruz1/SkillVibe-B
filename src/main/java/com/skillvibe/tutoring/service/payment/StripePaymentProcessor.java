@@ -1,23 +1,25 @@
-package com.skillvibe.tutoring.service;
+package com.skillvibe.tutoring.service.payment;
 
-import com.skillvibe.tutoring.model.Transaccion;
 import com.skillvibe.tutoring.model.User;
-import com.skillvibe.tutoring.repository.TransaccionRepository;
-import com.skillvibe.tutoring.repository.UserRepository;
 import com.stripe.Stripe;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.List;
 
+/**
+ * Implementación concreta del Patrón Strategy para Stripe.
+ *
+ * Toda la lógica específica de la SDK de Stripe vive aquí, aislada
+ * de PaymentService. Si se agrega un PayPalPaymentProcessor en el futuro,
+ * PaymentService no requiere ningún cambio.
+ */
 @Slf4j
-@Service
-public class PagoService {
+@Component
+public class StripePaymentProcessor implements PaymentProcessor {
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -25,20 +27,16 @@ public class PagoService {
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
-    private final TransaccionRepository transaccionRepository;
-    private final UserRepository userRepository;
-
-    public PagoService(TransaccionRepository transaccionRepository, UserRepository userRepository) {
-        this.transaccionRepository = transaccionRepository;
-        this.userRepository = userRepository;
-    }
-
     @PostConstruct
     public void init() {
         Stripe.apiKey = stripeApiKey;
+        log.info("StripePaymentProcessor inicializado correctamente.");
     }
 
+    @Override
     public String createCheckoutSession(User user, Double amount) throws Exception {
+        log.info("Creando sesión de Stripe para usuario: {} por ${}", user.getEmail(), amount);
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(frontendUrl + "/dashboard?payment=success")
@@ -61,35 +59,5 @@ public class PagoService {
 
         Session session = Session.create(params);
         return session.getUrl();
-    }
-
-    @SuppressWarnings("null")
-    @Transactional
-    public void processSuccessfulPayment(String userId, String amount, String paymentId) {
-        Long uId = Long.parseLong(userId);
-        Double amt = Double.parseDouble(amount);
-
-        User user = userRepository.findById(uId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // Actualizar balance
-        user.setBalance(user.getBalance() + amt);
-        userRepository.save(user);
-
-        // Registrar transacción
-        Transaccion transaccion = Transaccion.builder()
-                .user(user)
-                .amount(amt)
-                .type(Transaccion.TransactionType.LOAD)
-                .description("Recarga de saldo vía Stripe")
-                .stripePaymentId(paymentId)
-                .build();
-        
-        transaccionRepository.save(transaccion);
-        log.info("Pago procesado con éxito para el usuario {}: +${}", user.getFullName(), amt);
-    }
-
-    public List<Transaccion> getHistory(Long userId) {
-        return transaccionRepository.findByUserIdOrderByTimestampDesc(userId);
     }
 }

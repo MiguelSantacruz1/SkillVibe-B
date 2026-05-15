@@ -1,10 +1,10 @@
 package com.skillvibe.tutoring.controller;
 
 import com.skillvibe.tutoring.dto.ApiResponse;
-import com.skillvibe.tutoring.model.Transaccion;
+import com.skillvibe.tutoring.model.Transaction;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.security.UserPrincipal;
-import com.skillvibe.tutoring.service.PagoService;
+import com.skillvibe.tutoring.service.PaymentService;
 import com.skillvibe.tutoring.service.UserService;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
@@ -22,18 +22,18 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/pagos")
+@RequestMapping("/api/payments")
 @Tag(name = "Pagos", description = "Endpoints para recarga de saldo e historial")
-public class PagoController {
+public class PaymentController {
 
-    private final PagoService pagoService;
+    private final PaymentService PaymentService;
     private final UserService userService;
 
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
 
-    public PagoController(PagoService pagoService, UserService userService) {
-        this.pagoService = pagoService;
+    public PaymentController(PaymentService PaymentService, UserService userService) {
+        this.PaymentService = PaymentService;
         this.userService = userService;
     }
 
@@ -41,19 +41,19 @@ public class PagoController {
     @Operation(summary = "Crear sesión de pago en Stripe")
     public ResponseEntity<ApiResponse<String>> createCheckout(@RequestBody Map<String, Double> payload, Authentication auth) throws Exception {
         UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        // Cargamos el objeto User real solo porque PagoService lo necesita para Stripe
+        // Cargamos el objeto User real solo porque PaymentService lo necesita para Stripe
         User user = userService.findById(principal.getId());
         
         Double amount = payload.get("amount");
-        String url = pagoService.createCheckoutSession(user, amount);
+        String url = PaymentService.createCheckoutSession(user, amount);
         return ResponseEntity.ok(ApiResponse.success("URL de pago generada", url));
     }
 
     @GetMapping("/historial")
-    @Operation(summary = "Obtener historial de transacciones")
-    public ResponseEntity<ApiResponse<List<Transaccion>>> getHistorial(Authentication auth) {
+    @Operation(summary = "Obtener historial de Transactiones")
+    public ResponseEntity<ApiResponse<List<Transaction>>> getHistorial(Authentication auth) {
         UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Historial recuperado", pagoService.getHistory(principal.getId())));
+        return ResponseEntity.ok(ApiResponse.success("Historial recuperado", PaymentService.getHistory(principal.getId())));
     }
 
     @PostMapping("/webhook")
@@ -68,7 +68,7 @@ public class PagoController {
                     String userId = session.getMetadata().get("userId");
                     String amount = session.getMetadata().get("amount");
                     String paymentId = session.getPaymentIntent();
-                    pagoService.processSuccessfulPayment(userId, amount, paymentId);
+                    PaymentService.processSuccessfulPayment(userId, amount, paymentId);
                 }
             }
             return ResponseEntity.ok("Success");

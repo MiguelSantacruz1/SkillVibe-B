@@ -2,49 +2,59 @@ package com.skillvibe.tutoring.service;
 
 import com.skillvibe.tutoring.dto.CreateReviewDTO;
 import com.skillvibe.tutoring.dto.ReviewResponseDTO;
+import com.skillvibe.tutoring.event.ReviewCreatedEvent;
 import com.skillvibe.tutoring.exception.BusinessLogicException;
 import com.skillvibe.tutoring.exception.ResourceNotFoundException;
 import com.skillvibe.tutoring.model.Review;
 import com.skillvibe.tutoring.model.TutorProfile;
-import com.skillvibe.tutoring.model.Tutoria;
+import com.skillvibe.tutoring.model.ClassStatus;
+import com.skillvibe.tutoring.model.TutoringClass;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.repository.ReviewRepository;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
-import com.skillvibe.tutoring.repository.TutoriaRepository;
+import com.skillvibe.tutoring.repository.TutoringClassRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
-import com.skillvibe.tutoring.model.Notification.NotificationType;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Servicio de reseñas refactorizado con el Patrón Observer.
+ *
+ * ReviewService ya no depende de NotificationService directamente.
+ * En cambio, publica un ReviewCreatedEvent que es escuchado de forma
+ * asíncrona por NotificationEventListener.
+ */
 @Slf4j
 @Service
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final TutoriaRepository tutoriaRepository;
+    private final TutoringClassRepository tutoringClassRepository;
     private final TutorProfileRepository tutorProfileRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    // ── Observer: ApplicationEventPublisher en vez de NotificationService ──
+    private final ApplicationEventPublisher eventPublisher;
 
     public ReviewService(ReviewRepository reviewRepository,
-                         TutoriaRepository tutoriaRepository,
+                         TutoringClassRepository tutoringClassRepository,
                          TutorProfileRepository tutorProfileRepository,
                          UserRepository userRepository,
-                         NotificationService notificationService) {
+                         ApplicationEventPublisher eventPublisher) {
         this.reviewRepository = reviewRepository;
-        this.tutoriaRepository = tutoriaRepository;
+        this.tutoringClassRepository = tutoringClassRepository;
         this.tutorProfileRepository = tutorProfileRepository;
         this.userRepository = userRepository;
-        this.notificationService = notificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
-     * Crea una reseña para una tutoría finalizada.
+     * Crea una reseña para una tutoría COMPLETED.
      * Reglas de negocio:
-     *  1. La tutoría debe estar en estado FINALIZADA.
+     *  1. La tutoría debe estar en estado COMPLETED (usa el Enum ClassStatus).
      *  2. El estudiante debe ser el mismo que cursó la tutoría.
      *  3. Solo se permite 1 reseña por tutoría.
      * Al finalizar, recalcula el averageRating del tutor de forma atómica.
@@ -52,16 +62,16 @@ public class ReviewService {
     @SuppressWarnings("null")
     @Transactional
     public ReviewResponseDTO crearReview(Long studentId, CreateReviewDTO dto) {
-        Tutoria tutoria = tutoriaRepository.findById(dto.getTutoriaId())
+        TutoringClass tutoringClass = tutoringClassRepository.findById(dto.getTutoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tutoría no encontrada con ID: " + dto.getTutoriaId()));
 
-        // Regla 1: la tutoría debe estar finalizada
-        if (!"FINALIZADA".equals(tutoria.getEstado())) {
+        // Regla 1: la tutoría debe estar COMPLETED — usando el Enum (State Pattern)
+        if (tutoringClass.getStatus() != ClassStatus.COMPLETED) {
             throw new BusinessLogicException("Solo puedes calificar tutorías que hayan finalizado.");
         }
 
         // Regla 2: el estudiante que califica debe ser el que tomó la clase
-        if (!tutoria.getEstudiante().getId().equals(studentId)) {
+        if (!tutoringClass.getStudent().getId().equals(studentId)) {
             throw new BusinessLogicException("Solo el estudiante de esta tutoría puede calificarla.");
         }
 
@@ -70,13 +80,13 @@ public class ReviewService {
             throw new BusinessLogicException("Ya existe una reseña para esta tutoría.");
         }
 
-        User estudiante = userRepository.findById(studentId)
+        User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
 
         Review review = Review.builder()
-                .tutor(tutoria.getTutor())
-                .estudiante(estudiante)
-                .tutoria(tutoria)
+                .tutor(tutoringClass.getTutor())
+                .student(student)
+                .tutoringClass(tutoringClass)
                 .rating(dto.getRating())
                 .comment(dto.getComment())
                 .build();
@@ -84,14 +94,10 @@ public class ReviewService {
         Review savedReview = reviewRepository.save(review);
 
         // Recalcular el rating promedio del tutor de forma atómica
-        recalcularRatingTutor(tutoria.getTutor().getId());
+        recalcularRatingTutor(tutoringClass.getTutor().getId());
 
-        // Notificar al tutor sobre la nueva reseña
-        notificationService.enviarNotificacion(
-                tutoria.getTutor().getId(),
-                NotificationType.REVIEW,
-                "Has recibido una nueva reseña de " + estudiante.getFullName() + " con calificación " + dto.getRating() + " estrellas."
-        );
+        // ── Observer: publicar evento en vez de llamar a NotificationService ──
+        eventPublisher.publishEvent(new ReviewCreatedEvent(this, savedReview));
 
         log.info("Reseña creada para la tutoría {} con rating {}", dto.getTutoriaId(), dto.getRating());
         return new ReviewResponseDTO(savedReview);

@@ -21,8 +21,8 @@ public class ReviewResponseDTO {
 
     public ReviewResponseDTO(Review review) {
         this.id = review.getId();
-        this.tutoriaId = review.getTutoria().getId();
-        this.studentName = review.getEstudiante().getFullName();
+        this.tutoriaId = review.getTutoringClass().getId();
+        this.studentName = review.getStudent().getFullName();
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.createdAt = review.getCreatedAt();

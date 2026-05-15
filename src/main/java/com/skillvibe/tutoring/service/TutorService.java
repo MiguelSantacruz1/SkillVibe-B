@@ -2,9 +2,9 @@ package com.skillvibe.tutoring.service;
 
 import com.skillvibe.tutoring.dto.TutorSearchResponseDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
-import com.skillvibe.tutoring.model.Tutoria;
+import com.skillvibe.tutoring.model.TutoringClass;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
-import com.skillvibe.tutoring.repository.TutoriaRepository;
+import com.skillvibe.tutoring.repository.TutoringClassRepository;
 import com.skillvibe.tutoring.specification.TutorProfileSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,11 +18,11 @@ import java.util.List;
 @Service
 public class TutorService {
 
-    private final TutoriaRepository tutoriaRepository;
+    private final TutoringClassRepository TutoringClassRepository;
     private final TutorProfileRepository tutorProfileRepository;
 
-    public TutorService(TutoriaRepository tutoriaRepository, TutorProfileRepository tutorProfileRepository) {
-        this.tutoriaRepository = tutoriaRepository;
+    public TutorService(TutoringClassRepository TutoringClassRepository, TutorProfileRepository tutorProfileRepository) {
+        this.TutoringClassRepository = TutoringClassRepository;
         this.tutorProfileRepository = tutorProfileRepository;
     }
 
@@ -63,9 +63,9 @@ public class TutorService {
                 .build();
     }
 
-    public List<Tutoria> getTutoriasByTutor(Long tutorId) {
+    public List<TutoringClass> getTutoriasByTutor(Long tutorId) {
         log.info("Obteniendo panel de tutorías para el tutor: {}", tutorId);
-        return tutoriaRepository.findByTutorId(tutorId);
+        return TutoringClassRepository.findByTutorId(tutorId);
     }
 
     public TutorProfile getProfileByUserId(Long userId) {

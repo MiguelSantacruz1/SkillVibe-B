@@ -2,12 +2,12 @@ package com.skillvibe.tutoring.service;
 
 import com.skillvibe.tutoring.dto.BookingRequestDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
-import com.skillvibe.tutoring.model.Tutoria;
+import com.skillvibe.tutoring.model.TutoringClass;
 import com.skillvibe.tutoring.model.User;
-import com.skillvibe.tutoring.model.Notification.NotificationType;
+
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
-import com.skillvibe.tutoring.repository.TutoriaRepository;
-import com.skillvibe.tutoring.repository.TransaccionRepository;
+import com.skillvibe.tutoring.repository.TutoringClassRepository;
+import com.skillvibe.tutoring.repository.TransactionRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,14 +27,15 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("null")
 class TutoriaServiceTest {
 
-    @Mock private TutoriaRepository tutoriaRepository;
+    @Mock private TutoringClassRepository TutoringClassRepository;
     @Mock private UserRepository userRepository;
     @Mock private TutorProfileRepository tutorProfileRepository;
-    @Mock private TransaccionRepository transaccionRepository;
-    @Mock private NotificationService notificationService;
+    @Mock private TransactionRepository TransactionRepository;
+    @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
+    @Mock private com.skillvibe.tutoring.service.video.VideoRoomProvider videoRoomProvider;
 
     @InjectMocks
-    private TutoriaService tutoriaService;
+    private TutoringClassService TutoringClassService;
 
     private User student;
     private User tutorUser;
@@ -70,10 +71,10 @@ class TutoriaServiceTest {
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            tutoriaService.reservarTutoria(student.getId(), request);
+            TutoringClassService.bookClass(student.getId(), request);
         });
         assertEquals("Saldo insuficiente para reservar esta clase.", ex.getMessage());
-        verify(tutoriaRepository, never()).save(any());
+        verify(TutoringClassRepository, never()).save(any());
     }
 
     @Test
@@ -81,37 +82,38 @@ class TutoriaServiceTest {
         // Arrange
         BookingRequestDTO request = new BookingRequestDTO();
         request.setTutorId(tutorUser.getId());
-        request.setMateria("Math");
+        request.setSubject("Math");
         request.setFechaHora(LocalDateTime.now().plusDays(1));
 
         when(userRepository.findById(student.getId())).thenReturn(Optional.of(student));
         when(tutorProfileRepository.findByUserId(request.getTutorId())).thenReturn(Optional.of(tutorProfile));
-        when(tutoriaRepository.save(any(Tutoria.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(videoRoomProvider.generateMeetingLink(anyString())).thenReturn("https://meet.test");
+        when(TutoringClassRepository.save(any(TutoringClass.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        Tutoria result = tutoriaService.reservarTutoria(student.getId(), request);
+        TutoringClass result = TutoringClassService.bookClass(student.getId(), request);
 
         // Assert
         assertNotNull(result);
-        assertEquals("PROGRAMADA", result.getEstado());
+        assertEquals(com.skillvibe.tutoring.model.ClassStatus.PROGRAMMED, result.getStatus());
         assertEquals(75.0, student.getBalance()); // 100 - 25
         
         verify(userRepository).save(student);
-        verify(transaccionRepository).save(any());
-        verify(notificationService).enviarNotificacion(eq(tutorUser.getId()), eq(NotificationType.BOOKING), anyString());
+        verify(TransactionRepository).save(any());
+        verify(eventPublisher).publishEvent(any(com.skillvibe.tutoring.event.ClassReservedEvent.class));
     }
 
     @Test
     void finalizarTutoria_whenAlreadyFinalizada_throwsException() {
         // Arrange
-        Tutoria tutoria = new Tutoria();
-        tutoria.setEstado("FINALIZADA");
-        when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoria));
+        TutoringClass TutoringClass = new TutoringClass();
+        TutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
+        when(TutoringClassRepository.findById(1L)).thenReturn(Optional.of(TutoringClass));
 
         // Act & Assert
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            tutoriaService.finalizarTutoria(1L);
+        com.skillvibe.tutoring.exception.BusinessLogicException ex = assertThrows(com.skillvibe.tutoring.exception.BusinessLogicException.class, () -> {
+            TutoringClassService.finishClass(1L);
         });
-        assertEquals("Esta clase ya fue pagada y finalizada.", ex.getMessage());
+        assertEquals("Transición de estado inválida: no se puede pasar de [COMPLETED] a [COMPLETED].", ex.getMessage());
     }
 }

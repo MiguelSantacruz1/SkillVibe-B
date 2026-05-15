@@ -7,9 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transacciones")
+@Table(name = "transactions") // Mantiene la tabla o crea una nueva
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Transaccion {
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class Transaccion {
     public enum TransactionType {
         LOAD,       // Carga de saldo
         PAYMENT,    // Pago por clase (descuento al estudiante)
-        EARNING,    // Ingreso por clase finalizada (pago al tutor)
+        EARNING,    // Ingreso por clase COMPLETED (pago al tutor)
         REFUND,     // Reembolso al estudiante
         WITHDRAW    // Retiro de saldo (para tutores)
     }

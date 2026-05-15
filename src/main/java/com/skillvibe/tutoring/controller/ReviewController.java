@@ -32,7 +32,7 @@ public class ReviewController {
     }
 
     @Operation(
-        summary = "Crear reseña de una tutoría finalizada",
+        summary = "Crear reseña de una tutoría COMPLETED",
         description = "Solo el estudiante que cursó la tutoría puede calificarla, y solo una vez."
     )
     @PostMapping

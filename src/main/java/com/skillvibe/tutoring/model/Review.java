@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Representa la calificación y reseña que un estudiante deja
- * sobre una tutoría finalizada. Solo se permite 1 reseña por tutoría.
+ * sobre una tutoría COMPLETED. Solo se permite 1 reseña por tutoría.
  */
 @Entity
 @Table(
@@ -39,12 +39,12 @@ public class Review {
     /** El estudiante que deja la calificación */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estudiante_id", nullable = false)
-    private User estudiante;
+    private User student;
 
     /** La tutoría sobre la que se hace la reseña (1:1, única) */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutoria_id", nullable = false)
-    private Tutoria tutoria;
+    private TutoringClass tutoringClass;
 
     /** Calificación del 1 al 5 */
     @Column(nullable = false)

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingRequestDTO {
     private Long tutorId;
-    private String materia;
-    private String descripcion;
+    private String subject;
+    private String description;
     private LocalDateTime fechaHora;
 }
