@@ -22,4 +22,8 @@ public class TutorSearchResponseDTO {
     private Integer yearsOfExperience;
     private List<String> subjects;
     private Boolean isVerified;
+    /** Promedio de calificaciones del tutor (0.0 - 5.0) */
+    private Double averageRating;
+    /** Total de reseñas recibidas */
+    private Integer totalReviews;
 }

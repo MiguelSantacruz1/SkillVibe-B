@@ -58,6 +58,8 @@ public class TutorService {
                 .yearsOfExperience(profile.getYearsOfExperience())
                 .subjects(profile.getSubjects())
                 .isVerified(profile.getIsVerified())
+                .averageRating(profile.getAverageRating())
+                .totalReviews(profile.getTotalReviews())
                 .build();
     }
 

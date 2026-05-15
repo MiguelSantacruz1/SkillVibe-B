@@ -47,6 +47,14 @@ public class TutorProfile {
     @Column(nullable = false)
     private Boolean isVerified = false;
 
+    /** Promedio de calificaciones (1.0 - 5.0), recalculado al crear cada reseña */
+    @Column(nullable = false)
+    private Double averageRating = 0.0;
+
+    /** Total de reseñas recibidas */
+    @Column(nullable = false)
+    private Integer totalReviews = 0;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

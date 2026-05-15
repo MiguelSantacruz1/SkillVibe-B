@@ -25,6 +25,8 @@ public class TutorProfileResponseDTO {
     private Integer yearsOfExperience;
     private List<String> subjects;
     private Boolean isVerified;
+    private Double averageRating;
+    private Integer totalReviews;
 
     public TutorProfileResponseDTO(TutorProfile profile) {
         this.id = profile.getId();
@@ -40,5 +42,7 @@ public class TutorProfileResponseDTO {
         this.yearsOfExperience = profile.getYearsOfExperience();
         this.subjects = profile.getSubjects();
         this.isVerified = profile.getIsVerified();
+        this.averageRating = profile.getAverageRating();
+        this.totalReviews = profile.getTotalReviews();
     }
 }
