@@ -1,7 +1,6 @@
 package com.skillvibe.tutoring.service;
 
 import com.skillvibe.tutoring.dto.BookingRequestDTO;
-import com.skillvibe.tutoring.model.Role;
 import com.skillvibe.tutoring.model.TutorProfile;
 import com.skillvibe.tutoring.model.Tutoria;
 import com.skillvibe.tutoring.model.User;
@@ -25,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class TutoriaServiceTest {
 
     @Mock private TutoriaRepository tutoriaRepository;

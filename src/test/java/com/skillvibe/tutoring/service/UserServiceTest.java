@@ -1,13 +1,11 @@
 package com.skillvibe.tutoring.service;
 
-import com.skillvibe.tutoring.dto.AuthResponseDTO;
 import com.skillvibe.tutoring.dto.LoginRequest;
 import com.skillvibe.tutoring.exception.UnauthorizedException;
 import com.skillvibe.tutoring.model.Role;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
-import com.skillvibe.tutoring.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class UserServiceTest {
 
     @Mock
