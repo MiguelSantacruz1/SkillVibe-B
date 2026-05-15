@@ -9,6 +9,7 @@ import com.skillvibe.tutoring.repository.TutorProfileRepository;
 import com.skillvibe.tutoring.repository.TutoriaRepository;
 import com.skillvibe.tutoring.repository.TransaccionRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
+import com.skillvibe.tutoring.model.Notification.NotificationType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,15 +25,18 @@ public class TutoriaService {
     private final UserRepository userRepository;
     private final TutorProfileRepository tutorProfileRepository;
     private final TransaccionRepository transaccionRepository;
+    private final NotificationService notificationService;
 
     public TutoriaService(TutoriaRepository tutoriaRepository,
                           UserRepository userRepository,
                           TutorProfileRepository tutorProfileRepository,
-                          TransaccionRepository transaccionRepository) {
+                          TransaccionRepository transaccionRepository,
+                          NotificationService notificationService) {
         this.tutoriaRepository = tutoriaRepository;
         this.userRepository = userRepository;
         this.tutorProfileRepository = tutorProfileRepository;
         this.transaccionRepository = transaccionRepository;
+        this.notificationService = notificationService;
     }
 
     // ─────────────────────────────────────────────
@@ -80,7 +84,16 @@ public class TutoriaService {
         tutoria.setMeetingLink("https://meet.jit.si/" + roomName);
         tutoria.setEstado("PROGRAMADA");
 
-        return tutoriaRepository.save(tutoria);
+        Tutoria savedTutoria = tutoriaRepository.save(tutoria);
+
+        // Notificar al tutor sobre la nueva reserva
+        notificationService.enviarNotificacion(
+                profile.getUser().getId(),
+                NotificationType.BOOKING,
+                "El estudiante " + estudiante.getFullName() + " ha reservado una clase de " + request.getMateria()
+        );
+
+        return savedTutoria;
     }
 
     // ─────────────────────────────────────────────
@@ -114,7 +127,16 @@ public class TutoriaService {
         tutoria.setMeetingLink("https://meet.jit.si/" + roomName);
         tutoria.setEstado("PROGRAMADA");
 
-        return tutoriaRepository.save(tutoria);
+        Tutoria savedTutoria = tutoriaRepository.save(tutoria);
+
+        // Notificar al tutor o estudiante (asumiendo confirmación de programación)
+        notificationService.enviarNotificacion(
+                estudiante.getId(),
+                NotificationType.BOOKING,
+                "El tutor " + tutoria.getTutor().getFullName() + " ha programado una clase de " + tutoria.getMateria() + " contigo."
+        );
+
+        return savedTutoria;
     }
 
     // ─────────────────────────────────────────────
@@ -159,6 +181,15 @@ public class TutoriaService {
 
         log.info("------> CLASE FINALIZADA. PAGO REALIZADO AL TUTOR: {}", tutor.getFullName());
 
-        return tutoriaRepository.save(tutoria);
+        Tutoria savedTutoria = tutoriaRepository.save(tutoria);
+
+        // Notificar al estudiante que la clase finalizó y puede dejar una reseña
+        notificationService.enviarNotificacion(
+                tutoria.getEstudiante().getId(),
+                NotificationType.SYSTEM,
+                "Tu clase de " + tutoria.getMateria() + " con " + tutor.getFullName() + " ha finalizado. ¡No olvides dejar una reseña!"
+        );
+
+        return savedTutoria;
     }
 }
