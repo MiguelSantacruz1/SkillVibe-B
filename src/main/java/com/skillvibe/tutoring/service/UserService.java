@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.skillvibe.tutoring.model.TutorProfile;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
 import com.skillvibe.tutoring.dto.TutorRegistrationRequest;
+import com.skillvibe.tutoring.exception.UnauthorizedException;
 
 @Service
 public class UserService {
@@ -77,16 +78,16 @@ public class UserService {
         return tutorProfileRepository.save(profile);
     }
 
-    // Verifica si las credenciales son correctas
+    // Verifica si las credenciales son correctas y devuelve el usuario autenticado
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new UnauthorizedException("Credenciales inválidas"));
 
         // Comparamos la clave escrita con la encriptada en la base de datos
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new UnauthorizedException("Credenciales inválidas");
         }
 
-        return user; // Si todo está bien, devolvemos el usuario
+        return user;
     }
 }

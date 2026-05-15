@@ -4,6 +4,7 @@ import com.skillvibe.tutoring.dto.ApiResponse;
 import com.skillvibe.tutoring.dto.AuthResponseDTO;
 import com.skillvibe.tutoring.dto.LoginRequest;
 import com.skillvibe.tutoring.dto.RegisterRequest;
+import com.skillvibe.tutoring.dto.TutorProfileResponseDTO;
 import com.skillvibe.tutoring.dto.TutorRegistrationRequest;
 import com.skillvibe.tutoring.dto.UserResponseDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
@@ -36,9 +37,10 @@ public class AuthController {
     }
 
     @PostMapping("/register/tutor")
-    public ResponseEntity<ApiResponse<TutorProfile>> registerTutor(@Valid @RequestBody TutorRegistrationRequest request) {
+    public ResponseEntity<ApiResponse<TutorProfileResponseDTO>> registerTutor(@Valid @RequestBody TutorRegistrationRequest request) {
         TutorProfile newTutor = userService.registerTutor(request);
-        return ResponseEntity.ok(ApiResponse.success("Tutor registrado exitosamente. Pendiente de verificación.", newTutor));
+        // Fix #1: Usar DTO en vez de la entidad JPA para evitar LazyInitializationException
+        return ResponseEntity.ok(ApiResponse.success("Tutor registrado exitosamente. Pendiente de verificación.", new TutorProfileResponseDTO(newTutor)));
     }
 
     @PostMapping("/login")

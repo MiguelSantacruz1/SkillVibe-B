@@ -1,6 +1,7 @@
 package com.skillvibe.tutoring.controller;
 
 import com.skillvibe.tutoring.dto.ApiResponse;
+import com.skillvibe.tutoring.dto.TutorProfileResponseDTO;
 import com.skillvibe.tutoring.dto.TutorSearchResponseDTO;
 import com.skillvibe.tutoring.security.UserPrincipal;
 import com.skillvibe.tutoring.service.TutorService;
@@ -46,22 +47,24 @@ public class TutorController {
     @Operation(summary = "Obtener mi perfil de tutor", description = "Solo accesible para usuarios con rol TUTOR.")
     @GetMapping("/profile")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<ApiResponse<com.skillvibe.tutoring.model.TutorProfile>> getMyProfile(
+    public ResponseEntity<ApiResponse<TutorProfileResponseDTO>> getMyProfile(
             org.springframework.security.core.Authentication authentication
     ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Perfil obtenido", tutorService.getProfileByUserId(principal.getId())));
+        // Fix #1: Usar DTO en vez de la entidad JPA para evitar LazyInitializationException
+        return ResponseEntity.ok(ApiResponse.success("Perfil obtenido", new TutorProfileResponseDTO(tutorService.getProfileByUserId(principal.getId()))));
     }
 
     @Operation(summary = "Actualizar mi perfil de tutor", description = "Solo accesible para usuarios con rol TUTOR.")
     @PutMapping("/profile")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<ApiResponse<com.skillvibe.tutoring.model.TutorProfile>> updateProfile(
+    public ResponseEntity<ApiResponse<TutorProfileResponseDTO>> updateProfile(
             @RequestBody com.skillvibe.tutoring.dto.TutorProfileUpdateDTO updateDTO,
             org.springframework.security.core.Authentication authentication
     ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Perfil actualizado con éxito", tutorService.updateProfile(principal.getId(), updateDTO)));
+        // Fix #1: Usar DTO en vez de la entidad JPA para evitar LazyInitializationException
+        return ResponseEntity.ok(ApiResponse.success("Perfil actualizado con éxito", new TutorProfileResponseDTO(tutorService.updateProfile(principal.getId(), updateDTO))));
     }
 
     @GetMapping("/panel")

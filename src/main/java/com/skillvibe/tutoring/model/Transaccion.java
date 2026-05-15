@@ -37,8 +37,9 @@ public class Transaccion {
 
     public enum TransactionType {
         LOAD,       // Carga de saldo
-        PAYMENT,    // Pago por clase
-        REFUND,     // Reembolso
-        WITHDRAW    // Retiro (para tutores)
+        PAYMENT,    // Pago por clase (descuento al estudiante)
+        EARNING,    // Ingreso por clase finalizada (pago al tutor)
+        REFUND,     // Reembolso al estudiante
+        WITHDRAW    // Retiro de saldo (para tutores)
     }
 }

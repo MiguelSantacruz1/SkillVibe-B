@@ -2,14 +2,17 @@ package com.skillvibe.tutoring.service;
 
 import com.skillvibe.tutoring.dto.BookingRequestDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
+import com.skillvibe.tutoring.model.Transaccion;
 import com.skillvibe.tutoring.model.Tutoria;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.repository.TutorProfileRepository;
 import com.skillvibe.tutoring.repository.TutoriaRepository;
+import com.skillvibe.tutoring.repository.TransaccionRepository;
 import com.skillvibe.tutoring.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -20,15 +23,21 @@ public class TutoriaService {
     private final TutoriaRepository tutoriaRepository;
     private final UserRepository userRepository;
     private final TutorProfileRepository tutorProfileRepository;
-    private final com.skillvibe.tutoring.repository.TransaccionRepository transaccionRepository;
+    private final TransaccionRepository transaccionRepository;
 
-    public TutoriaService(TutoriaRepository tutoriaRepository, UserRepository userRepository, TutorProfileRepository tutorProfileRepository, com.skillvibe.tutoring.repository.TransaccionRepository transaccionRepository) {
+    public TutoriaService(TutoriaRepository tutoriaRepository,
+                          UserRepository userRepository,
+                          TutorProfileRepository tutorProfileRepository,
+                          TransaccionRepository transaccionRepository) {
         this.tutoriaRepository = tutoriaRepository;
         this.userRepository = userRepository;
         this.tutorProfileRepository = tutorProfileRepository;
         this.transaccionRepository = transaccionRepository;
     }
 
+    // ─────────────────────────────────────────────
+    // 1. RESERVAR (usado por el endpoint /reservar — STUDENT)
+    // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
     public Tutoria reservarTutoria(Long studentId, BookingRequestDTO request) {
@@ -46,15 +55,15 @@ public class TutoriaService {
             throw new RuntimeException("Saldo insuficiente para reservar esta clase.");
         }
 
-        // Descontar saldo
+        // Descontar saldo al estudiante
         estudiante.setBalance(estudiante.getBalance() - precio);
         userRepository.save(estudiante);
 
-        // Registrar transacción de salida para el alumno
-        transaccionRepository.save(com.skillvibe.tutoring.model.Transaccion.builder()
+        // Registrar transacción de pago para el estudiante
+        transaccionRepository.save(Transaccion.builder()
                 .user(estudiante)
                 .amount(precio)
-                .type(com.skillvibe.tutoring.model.Transaccion.TransactionType.PAYMENT)
+                .type(Transaccion.TransactionType.PAYMENT)
                 .description("Pago por tutoría de " + request.getMateria())
                 .build());
 
@@ -66,7 +75,7 @@ public class TutoriaService {
         tutoria.setDescripcion(request.getDescripcion());
         tutoria.setFechaHora(request.getFechaHora());
         tutoria.setPrecio(precio);
-        
+
         String roomName = "SkillVibe-" + UUID.randomUUID().toString().substring(0, 8);
         tutoria.setMeetingLink("https://meet.jit.si/" + roomName);
         tutoria.setEstado("PROGRAMADA");
@@ -74,7 +83,10 @@ public class TutoriaService {
         return tutoriaRepository.save(tutoria);
     }
 
-    // 1. Programar y Cobrar al Estudiante
+    // ─────────────────────────────────────────────
+    // 2. PROGRAMAR MANUAL (usado por el endpoint /programar — TUTOR)
+    //    Fix #2: ahora también descuenta saldo y registra la transacción
+    // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
     public Tutoria guardarTutoria(Tutoria tutoria) {
@@ -82,12 +94,20 @@ public class TutoriaService {
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
 
         if (estudiante.getBalance() < tutoria.getPrecio()) {
-            throw new RuntimeException("Saldo insuficiente. ¡Recarga tu cuenta, Andres!");
+            throw new RuntimeException("Saldo insuficiente. Por favor recarga tu cuenta.");
         }
 
         // Descontar saldo al alumno
         estudiante.setBalance(estudiante.getBalance() - tutoria.getPrecio());
         userRepository.save(estudiante);
+
+        // Registrar transacción de pago para el alumno (Fix #2: antes faltaba esto)
+        transaccionRepository.save(Transaccion.builder()
+                .user(estudiante)
+                .amount(tutoria.getPrecio())
+                .type(Transaccion.TransactionType.PAYMENT)
+                .description("Pago por tutoría de " + tutoria.getMateria())
+                .build());
 
         // Configuración inicial de la clase
         String roomName = "SkillVibe-" + UUID.randomUUID().toString().substring(0, 8);
@@ -97,7 +117,9 @@ public class TutoriaService {
         return tutoriaRepository.save(tutoria);
     }
 
-    // 2. BUSCAR ACTIVIDAD (Para el Tablero)
+    // ─────────────────────────────────────────────
+    // 3. LISTAR ACTIVIDAD (Para el Tablero)
+    // ─────────────────────────────────────────────
     public List<Tutoria> listarPorUsuario(Long userId) {
         List<Tutoria> comoTutor = tutoriaRepository.findByTutorId(userId);
         List<Tutoria> comoEstudiante = tutoriaRepository.findByEstudianteId(userId);
@@ -105,36 +127,37 @@ public class TutoriaService {
         return comoTutor;
     }
 
-    // 3. ✨ EL MÉTODO QUE FALTABA: FINALIZAR Y PAGAR AL TUTOR
+    // ─────────────────────────────────────────────
+    // 4. FINALIZAR Y PAGAR AL TUTOR
+    //    Fix #3: usa EARNING en vez de REFUND para el ingreso del tutor
+    // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
     public Tutoria finalizarTutoria(Long tutoriaId) {
-        // Buscamos la tutoría
         Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
                 .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoriaId));
 
-        // Validamos que no esté ya finalizada
         if ("FINALIZADA".equals(tutoria.getEstado())) {
             throw new RuntimeException("Esta clase ya fue pagada y finalizada.");
         }
 
-        // 1. Cambiamos el estado
+        // Cambiar estado
         tutoria.setEstado("FINALIZADA");
 
-        // 2. Le sumamos la plata al balance del Tutor
+        // Sumar el pago al balance del Tutor
         User tutor = tutoria.getTutor();
         tutor.setBalance(tutor.getBalance() + tutoria.getPrecio());
         userRepository.save(tutor);
 
-        // Registrar transacción de entrada para el tutor
-        transaccionRepository.save(com.skillvibe.tutoring.model.Transaccion.builder()
+        // Fix #3: registrar ingreso del tutor con tipo EARNING (no REFUND)
+        transaccionRepository.save(Transaccion.builder()
                 .user(tutor)
                 .amount(tutoria.getPrecio())
-                .type(com.skillvibe.tutoring.model.Transaccion.TransactionType.REFUND) // En este contexto es ingreso por servicio
+                .type(Transaccion.TransactionType.EARNING)
                 .description("Ingreso por tutoría finalizada: " + tutoria.getMateria())
                 .build());
 
-        log.info("-----> CLASE FINALIZADA. PAGO REALIZADO AL TUTOR: {}", tutor.getFullName());
+        log.info("------> CLASE FINALIZADA. PAGO REALIZADO AL TUTOR: {}", tutor.getFullName());
 
         return tutoriaRepository.save(tutoria);
     }
