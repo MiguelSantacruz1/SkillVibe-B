@@ -13,7 +13,7 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
-    @JsonProperty("fullName") // Esto vincula el JSON de Postman con esta variable
+    @JsonProperty("fullName")
     private String fullName;
 
     @Column(unique = true, nullable = false)
@@ -31,10 +31,26 @@ public class User {
     @JsonProperty("balance")
     private Double balance = 0.0;
 
+    // ── Verificación de correo ────────────────────────────────────────────────
+    @Column(nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(length = 64)
+    private String verificationToken;
+
+    private java.time.LocalDateTime verificationTokenExpiry;
+
+    // ── Recuperación de contraseña ───────────────────────────────────────────
+    @Column(length = 64)
+    private String passwordResetToken;
+
+    private java.time.LocalDateTime passwordResetTokenExpiry;
+
+    // ── Auditoría ────────────────────────────────────────────────────────────
     @org.hibernate.annotations.CreationTimestamp
     @Column(updatable = false)
     private java.time.LocalDateTime createdAt;
 
     @org.hibernate.annotations.UpdateTimestamp
     private java.time.LocalDateTime updatedAt;
-}
+}
