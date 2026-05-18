@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/tutor/search", "/api/reviews/tutor/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // WebSocket handshake
+                        .requestMatchers("/ws/**").permitAll()
                         // Todo lo demás protegido
                         .anyRequest().authenticated()
                 )
