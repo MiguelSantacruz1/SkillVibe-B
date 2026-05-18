@@ -29,7 +29,7 @@ public class Transaction {
     @Column(nullable = false)
     private String description;
 
-    /** ID externo de la transacción en la pasarela de pagos (ej. Wompi transaction ID). */
+    /** ID externo de la transacción en la pasarela de pagos (ej. ID de Simulación). */
     @Column(name = "external_payment_id")
     private String externalPaymentId;
 
