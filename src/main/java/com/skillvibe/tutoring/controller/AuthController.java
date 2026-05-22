@@ -1,5 +1,15 @@
 package com.skillvibe.tutoring.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.skillvibe.tutoring.dto.ApiResponse;
 import com.skillvibe.tutoring.dto.AuthResponseDTO;
 import com.skillvibe.tutoring.dto.LoginRequest;
@@ -10,15 +20,14 @@ import com.skillvibe.tutoring.dto.UserResponseDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.security.JwtService;
+import com.skillvibe.tutoring.service.EmailService;
 import com.skillvibe.tutoring.service.UserService;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -34,7 +43,6 @@ public class AuthController {
     }
 
     // ── Registro y Login ─────────────────────────────────────────────────────
-
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> register(@Valid @RequestBody RegisterRequest request) {
         User newUser = userService.registerUser(request);
@@ -72,7 +80,6 @@ public class AuthController {
     }
 
     // ── Verificación de correo ───────────────────────────────────────────────
-
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
         userService.verifyEmail(token);
@@ -86,7 +93,6 @@ public class AuthController {
     }
 
     // ── Recuperación de contraseña ───────────────────────────────────────────
-
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody EmailRequest body) {
         userService.requestPasswordReset(body.email());
@@ -101,13 +107,18 @@ public class AuthController {
     }
 
     // ── Records auxiliares ────────────────────────────────────────────────────
+    record EmailRequest(@Email
+            @NotBlank String email) {
 
-    record EmailRequest(@Email @NotBlank String email) {}
+    }
 
     record ResetPasswordRequest(
             @NotBlank String token,
-            @NotBlank @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres") String newPassword
-    ) {}
+            @NotBlank
+            @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres") String newPassword
+            ) {
+
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     private EmailService emailService;
