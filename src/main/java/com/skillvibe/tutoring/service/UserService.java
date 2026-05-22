@@ -58,8 +58,7 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setRole(request.getRole() != null ? request.getRole() : Role.STUDENT);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        // TODO: Re-activar verificación de correo cuando SMTP esté configurado en Railway
-        user.setEmailVerified(true); // Temporal: auto-verificado
+        user.setEmailVerified(false);
         user.setVerificationToken(token);
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
 
@@ -86,8 +85,7 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setRole(Role.TUTOR);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        // TODO: Re-activar verificación de correo cuando SMTP esté configurado en Railway
-        user.setEmailVerified(true); // Temporal: auto-verificado
+        user.setEmailVerified(false);
         user.setVerificationToken(token);
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
 
@@ -121,11 +119,10 @@ public class UserService {
             throw new UnauthorizedException("Credenciales inválidas");
         }
 
-        // TODO: Re-activar cuando SMTP esté funcionando
         // Bloquear login si el correo no ha sido verificado
-        // if (Boolean.FALSE.equals(user.getEmailVerified())) {
-        //     throw new UnauthorizedException("Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.");
-        // }
+        if (Boolean.FALSE.equals(user.getEmailVerified())) {
+            throw new UnauthorizedException("Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.");
+        }
 
         return user;
     }
