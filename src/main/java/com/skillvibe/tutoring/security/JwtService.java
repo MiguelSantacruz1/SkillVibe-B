@@ -24,7 +24,13 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
-        this.SECRET_KEY = Keys.hmacShaKeyFor(secretString.getBytes());
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] keyBytes = md.digest(secretString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            this.SECRET_KEY = Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error initializing JWT secret key", e);
+        }
     }
 
     // CAMBIO: Ahora recibe el objeto User completo para sacarle el Rol
