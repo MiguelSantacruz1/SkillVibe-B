@@ -38,15 +38,19 @@ public class DataSourceConfig {
         if (rawDatabaseUrl != null && rawDatabaseUrl.contains("@")) {
             try {
                 // Remove jdbc: prefix if it was added manually
-                String cleanUrl = rawDatabaseUrl.replaceFirst("^jdbc:", "");
+                String cleanUrl = rawDatabaseUrl.replaceFirst("^jdbc:", "").trim();
                 URI dbUri = new URI(cleanUrl);
 
                 String userInfo = dbUri.getUserInfo();
                 if (userInfo != null) {
                     String[] credentials = userInfo.split(":", 2);
                     if (credentials.length == 2) {
-                        config.setUsername(credentials[0]);
-                        config.setPassword(credentials[1]);
+                        String urlUser = credentials[0].trim();
+                        String urlPass = credentials[1].trim();
+                        
+                        // Use injected properties if they are explicitly set, otherwise use URL credentials
+                        config.setUsername(!"sa".equals(username) && username != null && !username.trim().isEmpty() ? username.trim() : urlUser);
+                        config.setPassword(password != null && !password.trim().isEmpty() ? password.trim() : urlPass);
                     }
                 }
 
@@ -56,16 +60,16 @@ public class DataSourceConfig {
                 
                 config.setJdbcUrl(jdbcUrl);
             } catch (URISyntaxException e) {
-                config.setJdbcUrl(rawDatabaseUrl);
+                config.setJdbcUrl(rawDatabaseUrl.trim());
             }
         } else {
-            String jdbcUrl = rawDatabaseUrl;
+            String jdbcUrl = rawDatabaseUrl != null ? rawDatabaseUrl.trim() : null;
             if (jdbcUrl != null && !jdbcUrl.startsWith("jdbc:")) {
                 jdbcUrl = jdbcUrl.replaceFirst("^postgres(?:ql)?://", "jdbc:postgresql://");
             }
             config.setJdbcUrl(jdbcUrl);
-            config.setUsername(username);
-            config.setPassword(password);
+            if (username != null) config.setUsername(username.trim());
+            if (password != null) config.setPassword(password.trim());
         }
 
         config.setMaximumPoolSize(5);
