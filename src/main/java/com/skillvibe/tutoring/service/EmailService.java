@@ -141,7 +141,7 @@ public class EmailService {
                           <td style="padding:20px 40px;text-align:center;
                                      border-top:1px solid rgba(255,255,255,0.05);">
                             <p style="color:rgba(255,255,255,0.3);font-size:12px;margin:0;">
-                              © 2026 SkillVibes · Universidad de Nariño
+                              © 2026 SkillVibes · Universidad Cooperativa
                             </p>
                           </td>
                         </tr>
