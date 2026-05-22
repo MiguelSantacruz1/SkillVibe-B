@@ -58,14 +58,14 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setRole(request.getRole() != null ? request.getRole() : Role.STUDENT);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmailVerified(false);
-        user.setVerificationToken(token);
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        user.setEmailVerified(true); // VERIFICACIÓN DESACTIVADA TEMPORALMENTE (Plan A)
+        user.setVerificationToken(null);
+        user.setVerificationTokenExpiry(null);
 
         User saved = userRepository.save(user);
 
         // Envío asíncrono: no bloquea la respuesta HTTP
-        emailService.sendVerificationEmail(saved.getEmail(), saved.getFullName(), token);
+        // emailService.sendVerificationEmail(saved.getEmail(), saved.getFullName(), token);
 
         return saved;
     }
@@ -85,9 +85,9 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setRole(Role.TUTOR);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmailVerified(false);
-        user.setVerificationToken(token);
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        user.setEmailVerified(true); // VERIFICACIÓN DESACTIVADA TEMPORALMENTE (Plan A)
+        user.setVerificationToken(null);
+        user.setVerificationTokenExpiry(null);
 
         userRepository.save(user);
 
@@ -104,7 +104,7 @@ public class UserService {
 
         TutorProfile saved = tutorProfileRepository.save(profile);
 
-        emailService.sendVerificationEmail(user.getEmail(), user.getFullName(), token);
+        // emailService.sendVerificationEmail(user.getEmail(), user.getFullName(), token);
 
         return saved;
     }
