@@ -1,22 +1,28 @@
 package com.skillvibe.tutoring.service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 public class EmailService {
 
-    // API Key de Resend — Railway no bloquea HTTPS, solo SMTP
-    private static final String RESEND_API_KEY = "re_XdbcJDmE_KMLyzLKL6VrNhWoymiSXEUm8";
-    private static final String RESEND_URL     = "https://api.resend.com/emails";
-    private static final String FROM_EMAIL     = "onboarding@resend.dev";
+    // API Key de Brevo (Sendinblue) se lee desde las variables de entorno para seguridad
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
+    
+    private static final String BREVO_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final String FROM_EMAIL = "skillvibess0@gmail.com";
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -24,7 +30,6 @@ public class EmailService {
     private String frontendUrl;
 
     // ── Verificación de cuenta ────────────────────────────────────────────────
-
     @Async
     public void sendVerificationEmail(String toEmail, String fullName, String token) {
         String link = frontendUrl + "/verify-email?token=" + token;
@@ -44,7 +49,6 @@ public class EmailService {
     }
 
     // ── Recuperación de contraseña ───────────────────────────────────────────
-
     @Async
     public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
@@ -63,36 +67,35 @@ public class EmailService {
         sendHtml(toEmail, "SkillVibes — Restablecer contraseña", html);
     }
 
-    // ── Método interno: enviar via Resend API ─────────────────────────────────
-
+    // ── Método interno: enviar via Brevo API ─────────────────────────────────
     public void sendHtml(String to, String subject, String htmlContent) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(RESEND_API_KEY);
+            headers.set("api-key", brevoApiKey);
+            headers.set("accept", "application/json");
 
             Map<String, Object> body = Map.of(
-                    "from",    FROM_EMAIL,
-                    "to",      new String[]{to},
+                    "sender", Map.of("email", FROM_EMAIL, "name", "SkillVibes"),
+                    "to", new Object[]{Map.of("email", to)},
                     "subject", subject,
-                    "html",    htmlContent
+                    "htmlContent", htmlContent
             );
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(RESEND_URL, request, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(BREVO_URL, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Email enviado via Resend a {}: {} | Response: {}", to, subject, response.getBody());
+                log.info("Email enviado via Brevo a {}: {} | Response: {}", to, subject, response.getBody());
             } else {
-                log.error("Resend respondio con error {}: {}", response.getStatusCode(), response.getBody());
+                log.error("Brevo respondio con error {}: {}", response.getStatusCode(), response.getBody());
             }
         } catch (Exception e) {
-            log.error("Error enviando email via Resend a {}: {}", to, e.getMessage());
+            log.error("Error enviando email via Brevo a {}: {}", to, e.getMessage());
         }
     }
 
     // ── Template HTML ─────────────────────────────────────────────────────────
-
     private String buildHtml(String title, String heading, String body, String link, String btnText, String btnColor) {
         return """
                 <!DOCTYPE html>

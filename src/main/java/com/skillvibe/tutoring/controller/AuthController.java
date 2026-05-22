@@ -128,10 +128,10 @@ public class AuthController {
         try {
             emailService.sendHtml(
                     "skillvibess0@gmail.com",
-                    "Diagnostico SkillVibe via Resend",
-                    "<h1 style='color:#a855f7'>Funciona!</h1><p>Este correo fue enviado via Resend API. Railway no lo puede bloquear.</p>"
+                    "Diagnostico SkillVibe via Brevo",
+                    "<h1 style='color:#a855f7'>Funciona!</h1><p>Este correo fue enviado via Brevo API. Railway no lo puede bloquear.</p>"
             );
-            return ResponseEntity.ok("Enviado con exito via Resend. Revisa tu bandeja de entrada en onboarding@resend.dev → tu correo.");
+            return ResponseEntity.ok("Enviado con exito via Brevo. Revisa tu bandeja de entrada.");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
