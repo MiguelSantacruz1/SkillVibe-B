@@ -108,4 +108,24 @@ public class AuthController {
             @NotBlank String token,
             @NotBlank @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres") String newPassword
     ) {}
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.mail.javamail.JavaMailSender mailSender;
+
+    @GetMapping("/test-email")
+    public ResponseEntity<?> testEmail() {
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom("skillvibess0@gmail.com");
+            helper.setTo("skillvibess0@gmail.com");
+            helper.setSubject("Diagnostico SkillVibe");
+            helper.setText("Si recibes esto, las credenciales funcionan.", true);
+            mailSender.send(message);
+            return ResponseEntity.ok("Enviado con exito sincronamente. Revisa tu bandeja de entrada.");
+        } catch (Exception e) {
+            String cause = e.getCause() != null ? e.getCause().getMessage() : "No cause";
+            return ResponseEntity.status(500).body("Error enviando correo: " + e.getMessage() + " | Causa: " + cause);
+        }
+    }
 }
