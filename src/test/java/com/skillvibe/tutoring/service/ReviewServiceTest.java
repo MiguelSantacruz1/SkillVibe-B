@@ -85,7 +85,7 @@ class ReviewServiceTest {
         dto.setTutoriaId(10L);
 
         when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
-        when(reviewRepository.existsByTutoriaId(10L)).thenReturn(true);
+        when(reviewRepository.existsByTutoringClassId(10L)).thenReturn(true);
 
         // Act & Assert
         BusinessLogicException ex = assertThrows(BusinessLogicException.class, () -> {
@@ -104,7 +104,7 @@ class ReviewServiceTest {
         dto.setComment("Great!");
 
         when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
-        when(reviewRepository.existsByTutoriaId(10L)).thenReturn(false);
+        when(reviewRepository.existsByTutoringClassId(10L)).thenReturn(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(student));
         
         Review savedReview = new Review();
