@@ -1,28 +1,29 @@
 package com.skillvibe.tutoring.service;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Slf4j
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    // API Key de Resend — Railway no bloquea HTTPS, solo SMTP
+    private static final String RESEND_API_KEY = "re_XdbcJDmE_KMLyzLKL6VrNhWoymiSXEUm8";
+    private static final String RESEND_URL     = "https://api.resend.com/emails";
+    private static final String FROM_EMAIL     = "onboarding@resend.dev";
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${app.frontend.url:https://skill-vibe-f.vercel.app}")
     private String frontendUrl;
 
-    @Value("${spring.mail.username:noreply@skillvibes.co}")
-    private String fromEmail;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    // ── Verificación de cuenta ────────────────────────────────────────────────
 
     @Async
     public void sendVerificationEmail(String toEmail, String fullName, String token) {
@@ -30,7 +31,7 @@ public class EmailService {
         log.info("==================================================");
         log.info("ENLACE DE VERIFICACION PARA {}: {}", toEmail, link);
         log.info("==================================================");
-        System.out.println("ENLACE DE VERIFICACION: " + link);
+
         String html = buildHtml(
                 "Verifica tu correo",
                 "Hola " + fullName + ", gracias por registrarte en SkillVibes.",
@@ -42,13 +43,15 @@ public class EmailService {
         sendHtml(toEmail, "SkillVibes — Verifica tu correo", html);
     }
 
+    // ── Recuperación de contraseña ───────────────────────────────────────────
+
     @Async
     public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
         log.info("==================================================");
         log.info("ENLACE DE RECUPERACION PARA {}: {}", toEmail, link);
         log.info("==================================================");
-        System.out.println("ENLACE DE RECUPERACION: " + link);
+
         String html = buildHtml(
                 "Restablecer contraseña",
                 "Hola " + fullName + ", recibimos tu solicitud de cambio de contraseña.",
@@ -60,20 +63,35 @@ public class EmailService {
         sendHtml(toEmail, "SkillVibes — Restablecer contraseña", html);
     }
 
-    private void sendHtml(String to, String subject, String htmlContent) {
+    // ── Método interno: enviar via Resend API ─────────────────────────────────
+
+    public void sendHtml(String to, String subject, String htmlContent) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail, "SkillVibes");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
-            mailSender.send(message);
-            log.info("Email enviado a {}: {}", to, subject);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(RESEND_API_KEY);
+
+            Map<String, Object> body = Map.of(
+                    "from",    FROM_EMAIL,
+                    "to",      new String[]{to},
+                    "subject", subject,
+                    "html",    htmlContent
+            );
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(RESEND_URL, request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Email enviado via Resend a {}: {} | Response: {}", to, subject, response.getBody());
+            } else {
+                log.error("Resend respondio con error {}: {}", response.getStatusCode(), response.getBody());
+            }
         } catch (Exception e) {
-            log.error("Error enviando email a {}: {}", to, e.getMessage());
+            log.error("Error enviando email via Resend a {}: {}", to, e.getMessage());
         }
     }
+
+    // ── Template HTML ─────────────────────────────────────────────────────────
 
     private String buildHtml(String title, String heading, String body, String link, String btnText, String btnColor) {
         return """

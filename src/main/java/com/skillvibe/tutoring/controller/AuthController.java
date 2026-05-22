@@ -110,22 +110,19 @@ public class AuthController {
     ) {}
 
     @org.springframework.beans.factory.annotation.Autowired
-    private org.springframework.mail.javamail.JavaMailSender mailSender;
+    private EmailService emailService;
 
     @GetMapping("/test-email")
     public ResponseEntity<?> testEmail() {
         try {
-            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
-            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom("skillvibess0@gmail.com");
-            helper.setTo("skillvibess0@gmail.com");
-            helper.setSubject("Diagnostico SkillVibe");
-            helper.setText("Si recibes esto, las credenciales funcionan.", true);
-            mailSender.send(message);
-            return ResponseEntity.ok("Enviado con exito sincronamente. Revisa tu bandeja de entrada.");
+            emailService.sendHtml(
+                    "skillvibess0@gmail.com",
+                    "Diagnostico SkillVibe via Resend",
+                    "<h1 style='color:#a855f7'>Funciona!</h1><p>Este correo fue enviado via Resend API. Railway no lo puede bloquear.</p>"
+            );
+            return ResponseEntity.ok("Enviado con exito via Resend. Revisa tu bandeja de entrada en onboarding@resend.dev → tu correo.");
         } catch (Exception e) {
-            String cause = e.getCause() != null ? e.getCause().getMessage() : "No cause";
-            return ResponseEntity.status(500).body("Error enviando correo: " + e.getMessage() + " | Causa: " + cause);
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
 }
