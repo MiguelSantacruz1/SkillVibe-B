@@ -3,6 +3,7 @@ package com.skillvibe.tutoring.service;
 import com.skillvibe.tutoring.dto.RegisterRequest;
 import com.skillvibe.tutoring.dto.TutorRegistrationRequest;
 import com.skillvibe.tutoring.exception.BusinessLogicException;
+import com.skillvibe.tutoring.exception.ResourceNotFoundException;
 import com.skillvibe.tutoring.exception.UnauthorizedException;
 import com.skillvibe.tutoring.model.Role;
 import com.skillvibe.tutoring.model.TutorProfile;
@@ -40,7 +41,7 @@ public class UserService {
 
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
     }
 
     // ── Student Registration ─────────────────────────────────────────────────

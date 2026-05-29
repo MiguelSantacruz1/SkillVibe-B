@@ -20,6 +20,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Apply rate limiting to authentication and registration endpoints
         registry.addInterceptor(rateLimitInterceptor)
-                .addPathPatterns("/api/auth/login", "/api/auth/register", "/api/auth/register/tutor", "/api/auth/forgot-password");
+                .addPathPatterns("/api/auth/login", "/api/auth/register/**", "/api/auth/forgot-password");
     }
 }
