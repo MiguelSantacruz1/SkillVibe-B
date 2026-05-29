@@ -160,7 +160,7 @@ public class PostService {
 
     /** Marca o desmarca una publicación como destacada (solo admin). */
     @Transactional
-    public PostResponseDTO toggleFeatured(Long postId) {
+    public PostResponseDTO toggleFeatured(Long postId, Long requesterId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessLogicException("Publicación no encontrada."));
 
