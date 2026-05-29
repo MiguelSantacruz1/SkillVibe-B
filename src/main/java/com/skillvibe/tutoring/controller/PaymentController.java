@@ -61,6 +61,10 @@ public class PaymentController {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("El monto debe ser mayor a 0 COP"));
         }
+        if (amount > 10000000) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("El monto máximo por recarga es de 10,000,000 COP"));
+        }
 
         paymentService.simulatePayment(user.getId(), amount);
         
