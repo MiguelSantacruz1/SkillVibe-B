@@ -62,8 +62,8 @@ public class ReviewService {
     @SuppressWarnings("null")
     @Transactional
     public ReviewResponseDTO createReview(Long studentId, CreateReviewDTO dto) {
-        TutoringClass tutoringClass = tutoringClassRepository.findById(dto.getTutoriaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Tutoría no encontrada con ID: " + dto.getTutoriaId()));
+        TutoringClass tutoringClass = tutoringClassRepository.findById(dto.getTutoringClassId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tutoría no encontrada con ID: " + dto.getTutoringClassId()));
 
         // Regla 1: la tutoría debe estar COMPLETED — usando el Enum (State Pattern)
         if (tutoringClass.getStatus() != ClassStatus.COMPLETED) {
@@ -76,7 +76,7 @@ public class ReviewService {
         }
 
         // Regla 3: no se puede calificar dos veces la misma tutoría
-        if (reviewRepository.existsByTutoringClassId(dto.getTutoriaId())) {
+        if (reviewRepository.existsByTutoringClassId(dto.getTutoringClassId())) {
             throw new BusinessLogicException("Ya existe una reseña para esta tutoría.");
         }
 
@@ -99,7 +99,7 @@ public class ReviewService {
         // ── Observer: publicar evento en vez de llamar a NotificationService ──
         eventPublisher.publishEvent(new ReviewCreatedEvent(this, savedReview));
 
-        log.info("Reseña creada para la tutoría {} con rating {}", dto.getTutoriaId(), dto.getRating());
+        log.info("Reseña creada para la tutoría {} con rating {}", dto.getTutoringClassId(), dto.getRating());
         return new ReviewResponseDTO(savedReview);
     }
 

@@ -13,5 +13,5 @@ public class BookingRequestDTO {
     private Long tutorId;
     private String subject;
     private String description;
-    private LocalDateTime fechaHora;
+    private LocalDateTime scheduledAt;
 }

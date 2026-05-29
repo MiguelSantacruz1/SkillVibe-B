@@ -39,7 +39,7 @@ public class NotificationEventListener {
     @EventListener
     public void onTutoriaReserved(ClassReservedEvent event) {
         var TutoringClass = event.getTutoria();
-        log.info("[Observer] ClassReservedEvent recibido para tutoriaId={}", TutoringClass.getId());
+        log.info("[Observer] ClassReservedEvent recibido para tutoringClassId={}", TutoringClass.getId());
 
         notificationService.enviarNotificacion(
                 TutoringClass.getTutor().getId(),
@@ -56,7 +56,7 @@ public class NotificationEventListener {
     @EventListener
     public void onTutoriaFinished(ClassFinishedEvent event) {
         var TutoringClass = event.getTutoria();
-        log.info("[Observer] ClassFinishedEvent recibido para tutoriaId={}", TutoringClass.getId());
+        log.info("[Observer] ClassFinishedEvent recibido para tutoringClassId={}", TutoringClass.getId());
 
         notificationService.enviarNotificacion(
                 TutoringClass.getStudent().getId(),

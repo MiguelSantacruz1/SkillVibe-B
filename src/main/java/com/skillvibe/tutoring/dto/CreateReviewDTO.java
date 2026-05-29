@@ -10,7 +10,7 @@ import lombok.Data;
 public class CreateReviewDTO {
 
     @NotNull(message = "El ID de la tutoría es obligatorio")
-    private Long tutoriaId;
+    private Long tutoringClassId;
 
     @NotNull(message = "La calificación es obligatoria")
     @Min(value = 1, message = "La calificación mínima es 1")

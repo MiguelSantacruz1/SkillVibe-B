@@ -15,7 +15,7 @@ public class TutoringClass {
     private String subject;
     private String description;
     private Double price; // <--- NUEVO: Cuánto cuesta la clase
-    private LocalDateTime fechaHora;
+    private LocalDateTime scheduledAt;
     private String meetingLink;
 
     @ManyToOne

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class ReviewResponseDTO {
 
     private Long id;
-    private Long tutoriaId;
+    private Long tutoringClassId;
     private String studentName;
     private Integer rating;
     private String comment;
@@ -21,7 +21,7 @@ public class ReviewResponseDTO {
 
     public ReviewResponseDTO(Review review) {
         this.id = review.getId();
-        this.tutoriaId = review.getTutoringClass().getId();
+        this.tutoringClassId = review.getTutoringClass().getId();
         this.studentName = review.getStudent().getFullName();
         this.rating = review.getRating();
         this.comment = review.getComment();

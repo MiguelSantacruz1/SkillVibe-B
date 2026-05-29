@@ -95,7 +95,7 @@ public class TutoringClassService {
         TutoringClass.setTutor(profile.getUser());
         TutoringClass.setSubject(request.getSubject());
         TutoringClass.setDescription(request.getDescription());
-        TutoringClass.setFechaHora(request.getFechaHora());
+        TutoringClass.setScheduledAt(request.getScheduledAt());
         TutoringClass.setPrice(precio);
         // ── Strategy: VideoRoomProvider genera el link, sin lógica de Jitsi aquí ──
         TutoringClass.setMeetingLink(videoRoomProvider.generateMeetingLink("reserva-" + studentId));
@@ -164,9 +164,9 @@ public class TutoringClassService {
     // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
-    public TutoringClass finishClass(Long tutoriaId) {
-        TutoringClass TutoringClass = TutoringClassRepository.findById(tutoriaId)
-                .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoriaId));
+    public TutoringClass finishClass(Long tutoringClassId) {
+        TutoringClass TutoringClass = TutoringClassRepository.findById(tutoringClassId)
+                .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoringClassId));
 
         // ── State Pattern: validar la transición antes de ejecutar la lógica ──
         TutoringClass.getStatus().validarTransicion(ClassStatus.COMPLETED);
@@ -203,9 +203,9 @@ public class TutoringClassService {
     // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
-    public TutoringClass cancelClass(Long tutoriaId, Long requestingUserId) {
-        TutoringClass TutoringClass = TutoringClassRepository.findById(tutoriaId)
-                .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoriaId));
+    public TutoringClass cancelClass(Long tutoringClassId, Long requestingUserId) {
+        TutoringClass TutoringClass = TutoringClassRepository.findById(tutoringClassId)
+                .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoringClassId));
 
         // ── State Pattern: validar la transición ──
         TutoringClass.getStatus().validarTransicion(ClassStatus.CANCELLED);
