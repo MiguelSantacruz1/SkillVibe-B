@@ -27,15 +27,15 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("null")
 class TutoriaServiceTest {
 
-    @Mock private TutoringClassRepository TutoringClassRepository;
+    @Mock private TutoringClassRepository tutoringClassRepository;
     @Mock private UserRepository userRepository;
     @Mock private TutorProfileRepository tutorProfileRepository;
-    @Mock private TransactionRepository TransactionRepository;
+    @Mock private TransactionRepository transactionRepository;
     @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
     @Mock private com.skillvibe.tutoring.service.video.VideoRoomProvider videoRoomProvider;
 
     @InjectMocks
-    private TutoringClassService TutoringClassService;
+    private TutoringClassService tutoringClassService;
 
     private User student;
     private User tutorUser;
@@ -71,10 +71,10 @@ class TutoriaServiceTest {
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            TutoringClassService.bookClass(student.getId(), request);
+            tutoringClassService.bookClass(student.getId(), request);
         });
         assertEquals("Saldo insuficiente para reservar esta clase.", ex.getMessage());
-        verify(TutoringClassRepository, never()).save(any());
+        verify(tutoringClassRepository, never()).save(any());
     }
 
     @Test
@@ -88,10 +88,10 @@ class TutoriaServiceTest {
         when(userRepository.findById(student.getId())).thenReturn(Optional.of(student));
         when(tutorProfileRepository.findByUserId(request.getTutorId())).thenReturn(Optional.of(tutorProfile));
         when(videoRoomProvider.generateMeetingLink(anyString())).thenReturn("https://meet.test");
-        when(TutoringClassRepository.save(any(TutoringClass.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tutoringClassRepository.save(any(TutoringClass.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        TutoringClass result = TutoringClassService.bookClass(student.getId(), request);
+        TutoringClass result = tutoringClassService.bookClass(student.getId(), request);
 
         // Assert
         assertNotNull(result);
@@ -99,20 +99,21 @@ class TutoriaServiceTest {
         assertEquals(75.0, student.getBalance()); // 100 - 25
         
         verify(userRepository).save(student);
-        verify(TransactionRepository).save(any());
+        verify(transactionRepository).save(any());
         verify(eventPublisher).publishEvent(any(com.skillvibe.tutoring.event.ClassReservedEvent.class));
     }
 
     @Test
     void finalizarTutoria_whenAlreadyFinalizada_throwsException() {
         // Arrange
-        TutoringClass TutoringClass = new TutoringClass();
-        TutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
-        when(TutoringClassRepository.findById(1L)).thenReturn(Optional.of(TutoringClass));
+        TutoringClass tutoringClass = new TutoringClass();
+        tutoringClass.setTutor(tutorUser);
+        tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
+        when(tutoringClassRepository.findById(1L)).thenReturn(Optional.of(tutoringClass));
 
         // Act & Assert
         com.skillvibe.tutoring.exception.BusinessLogicException ex = assertThrows(com.skillvibe.tutoring.exception.BusinessLogicException.class, () -> {
-            TutoringClassService.finishClass(1L);
+            tutoringClassService.finishClass(1L, tutorUser.getId());
         });
         assertEquals("Transición de estado inválida: no se puede pasar de [COMPLETED] a [COMPLETED].", ex.getMessage());
     }
