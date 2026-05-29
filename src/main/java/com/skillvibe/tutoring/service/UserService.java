@@ -38,7 +38,6 @@ public class UserService {
 
     // ── Basic Queries ────────────────────────────────────────────────────────
 
-    @SuppressWarnings("null")
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));

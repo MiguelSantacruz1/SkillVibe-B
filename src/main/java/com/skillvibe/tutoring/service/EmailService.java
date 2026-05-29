@@ -22,7 +22,9 @@ public class EmailService {
     private String brevoApiKey;
     
     private static final String BREVO_URL = "https://api.brevo.com/v3/smtp/email";
-    private static final String FROM_EMAIL = "skillvibess0@gmail.com";
+    
+    @Value("${app.mail.from:skillvibess0@gmail.com}")
+    private String fromEmail;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -70,7 +72,7 @@ public class EmailService {
             headers.set("accept", "application/json");
 
             Map<String, Object> body = Map.of(
-                    "sender", Map.of("email", FROM_EMAIL, "name", "SkillVibes"),
+                    "sender", Map.of("email", fromEmail, "name", "SkillVibes"),
                     "to", new Object[]{Map.of("email", to)},
                     "subject", subject,
                     "htmlContent", htmlContent

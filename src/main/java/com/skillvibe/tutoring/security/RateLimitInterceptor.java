@@ -8,14 +8,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
-    private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
+    private final Cache<String, TokenBucket> buckets = Caffeine.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .maximumSize(10000)
+            .build();
 
     // Limit configuration
     private static final long CAPACITY = 10;
@@ -53,7 +57,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private TokenBucket resolveBucket(String ip) {
-        return buckets.computeIfAbsent(ip, k -> new TokenBucket());
+        return buckets.get(ip, k -> new TokenBucket());
     }
 
     @Override
