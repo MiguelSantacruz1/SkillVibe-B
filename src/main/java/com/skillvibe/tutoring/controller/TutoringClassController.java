@@ -43,7 +43,7 @@ public class TutoringClassController {
 
     @Operation(summary = "Ver el tablero de actividades", description = "Muestra todas las tutorías asociadas a un usuario (como tutor o como estudiante).")
     @GetMapping("/mi-tablero/{userId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<List<TutoringClass>>> getDashboard(@PathVariable Long userId) {
         return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Tablero obtenido con éxito", TutoringClassService.listByUser(userId)));
     }
@@ -51,8 +51,11 @@ public class TutoringClassController {
     @Operation(summary = "Finalizar clase y pagar al tutor", description = "Cambia el estado a COMPLETED y suma el valor de la clase al balance del tutor.")
     @PutMapping("/{id}/finalizar")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<TutoringClass>> finishClass(@PathVariable Long id) {
-        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Clase COMPLETED correctamente", TutoringClassService.finishClass(id)));
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<TutoringClass>> finishClass(
+            @PathVariable Long id,
+            org.springframework.security.core.Authentication authentication) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Clase COMPLETED correctamente", TutoringClassService.finishClass(id, principal.getId())));
     }
 
     @Operation(summary = "Cancelar tutoría con reembolso", description = "Cancela una tutoría en estado PROGRAMMED o IN_PROGRESS y devuelve el saldo al estudiante automáticamente.")
