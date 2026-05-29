@@ -11,6 +11,5 @@ public class CreatePostDTO {
     @Size(min = 1, max = 500, message = "El contenido debe tener entre 1 y 500 caracteres.")
     private String content;
 
-    @Size(max = 512)
     private String imageUrl;
 }
