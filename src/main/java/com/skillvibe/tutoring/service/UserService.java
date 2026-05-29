@@ -159,6 +159,10 @@ public class UserService {
         if (Boolean.TRUE.equals(user.getEmailVerified())) {
             throw new BusinessLogicException("Este correo ya fue verificado");
         }
+        
+        if (user.getVerificationTokenExpiry() != null && user.getVerificationTokenExpiry().isAfter(LocalDateTime.now())) {
+            throw new BusinessLogicException("Ya se ha enviado un correo de verificación reciente. Por favor revisa tu bandeja de entrada o spam.");
+        }
 
         String token = generateToken();
         user.setVerificationToken(token);
@@ -174,6 +178,10 @@ public class UserService {
     public void requestPasswordReset(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessLogicException("No existe una cuenta con ese correo"));
+
+        if (user.getPasswordResetTokenExpiry() != null && user.getPasswordResetTokenExpiry().isAfter(LocalDateTime.now())) {
+            throw new BusinessLogicException("Ya has solicitado un restablecimiento de contraseña recientemente. Revisa tu correo o spam.");
+        }
 
         String token = generateToken();
         user.setPasswordResetToken(token);
