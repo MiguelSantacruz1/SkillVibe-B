@@ -27,7 +27,7 @@ public class JitsiVideoRoomProvider implements VideoRoomProvider {
     public String generateMeetingLink(String sessionId) {
         String uniquePart = UUID.randomUUID().toString().substring(0, 8);
         String roomName = ROOM_PREFIX + uniquePart;
-        String meetingLink = VERCEL_BASE_URL + roomName;
+        String meetingLink = VERCEL_BASE_URL + "?room=" + roomName;
         log.info("VideoRoom generado para sessionId [{}]: {}", sessionId, meetingLink);
         return meetingLink;
     }
