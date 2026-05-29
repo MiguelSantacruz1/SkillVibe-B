@@ -20,7 +20,7 @@ import java.util.UUID;
 @Component
 public class JitsiVideoRoomProvider implements VideoRoomProvider {
 
-    private static final String VERCEL_BASE_URL = "https://frontend-intelligent-table-dp2tk3c8z.vercel.app/";
+    private static final String VERCEL_BASE_URL = "https://frontend-intelligent-table.vercel.app/";
     private static final String ROOM_PREFIX = "room-";
 
     @Override
