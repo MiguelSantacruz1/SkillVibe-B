@@ -20,7 +20,6 @@ import com.skillvibe.tutoring.dto.UserResponseDTO;
 import com.skillvibe.tutoring.model.TutorProfile;
 import com.skillvibe.tutoring.model.User;
 import com.skillvibe.tutoring.security.JwtService;
-import com.skillvibe.tutoring.service.EmailService;
 import com.skillvibe.tutoring.service.UserService;
 
 import jakarta.validation.Valid;
@@ -68,6 +67,7 @@ public class AuthController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ApiResponse<UserResponseDTO>> getUser(@PathVariable Long id) {
         User user = userService.findById(id);
         return ResponseEntity.ok(ApiResponse.success("Usuario obtenido", new UserResponseDTO(user)));
@@ -115,25 +115,9 @@ public class AuthController {
     record ResetPasswordRequest(
             @NotBlank String token,
             @NotBlank
-            @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres") String newPassword
+            @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres") String newPassword
             ) {
 
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private EmailService emailService;
-
-    @GetMapping("/test-email")
-    public ResponseEntity<?> testEmail() {
-        try {
-            emailService.sendHtml(
-                    "skillvibess0@gmail.com",
-                    "Diagnostico SkillVibe via Brevo",
-                    "<h1 style='color:#a855f7'>Funciona!</h1><p>Este correo fue enviado via Brevo API. Railway no lo puede bloquear.</p>"
-            );
-            return ResponseEntity.ok("Enviado con exito via Brevo. Revisa tu bandeja de entrada.");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
-        }
-    }
 }
