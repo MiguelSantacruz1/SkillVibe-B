@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.skillvibe.tutoring.security.UserPrincipal;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,11 +42,15 @@ public class TutoringClassController {
         return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Reserva realizada con éxito", TutoringClassService.bookClass(principal.getId(), request)));
     }
 
-    @Operation(summary = "Ver el tablero de actividades", description = "Muestra todas las tutorías asociadas a un usuario (como tutor o como estudiante).")
+    @Operation(summary = "Ver el tablero de actividades", description = "Muestra todas las tutoías asociadas a un usuario (como tutor o como estudiante) con paginación.")
     @GetMapping("/mi-tablero/{userId}")
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<List<TutoringClass>>> getDashboard(@PathVariable Long userId) {
-        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success("Tablero obtenido con éxito", TutoringClassService.listByUser(userId)));
+    public ResponseEntity<com.skillvibe.tutoring.dto.ApiResponse<Page<TutoringClass>>> getDashboard(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(com.skillvibe.tutoring.dto.ApiResponse.success(
+                "Tablero obtenido con éxito", TutoringClassService.listByUser(userId, page, size)));
     }
 
     @Operation(summary = "Finalizar clase y pagar al tutor", description = "Cambia el estado a COMPLETED y suma el valor de la clase al balance del tutor.")

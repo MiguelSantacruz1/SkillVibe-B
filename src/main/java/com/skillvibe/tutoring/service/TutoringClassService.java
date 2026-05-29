@@ -16,9 +16,14 @@ import com.skillvibe.tutoring.service.video.VideoRoomProvider;
 import com.skillvibe.tutoring.exception.BusinessLogicException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -149,13 +154,19 @@ public class TutoringClassService {
     }
 
     // ─────────────────────────────────────────────
-    // 3. LISTAR ACTIVIDAD (Para el Tablero)
+    // 3. LISTAR ACTIVIDAD (Para el Tablero) — con paginación
     // ─────────────────────────────────────────────
-    public List<TutoringClass> listByUser(Long userId) {
+    public Page<TutoringClass> listByUser(Long userId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "scheduledAt"));
         List<TutoringClass> comoTutor = TutoringClassRepository.findByTutorId(userId);
         List<TutoringClass> comoEstudiante = TutoringClassRepository.findByStudentId(userId);
-        comoTutor.addAll(comoEstudiante);
-        return comoTutor;
+        List<TutoringClass> all = new ArrayList<>(comoTutor);
+        all.addAll(comoEstudiante);
+        all.sort((a, b) -> b.getScheduledAt().compareTo(a.getScheduledAt()));
+        int start = (int) pageRequest.getOffset();
+        int end = Math.min(start + pageRequest.getPageSize(), all.size());
+        List<TutoringClass> pageContent = (start > all.size()) ? List.of() : all.subList(start, end);
+        return new PageImpl<>(pageContent, pageRequest, all.size());
     }
 
     // ─────────────────────────────────────────────

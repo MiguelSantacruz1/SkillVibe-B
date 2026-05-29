@@ -47,6 +47,22 @@ public class EmailService {
         sendHtml(toEmail, "SkillVibes — Verifica tu correo", html);
     }
 
+    // ── Recordatorio de clase ─────────────────────────────────────────────────
+    @Async
+    public void sendClassReminderEmail(String toEmail, String fullName, String subject,
+                                       String scheduledAt, String meetingLink) {
+        String html = buildHtml(
+                "Recordatorio de tu clase",
+                "¡Hola " + fullName + "! Tu clase está por comenzar.",
+                "Tu sesión de <strong>" + subject + "</strong> empieza en 15 minutos. " +
+                "Hora programada: <strong>" + scheduledAt + "</strong>",
+                meetingLink,
+                "Unirse a la clase ahora",
+                "#10b981"
+        );
+        sendHtml(toEmail, "SkillVibes — Tu clase de " + subject + " empieza pronto", html);
+    }
+
     // ── Recuperación de contraseña ───────────────────────────────────────────
     @Async
     public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
