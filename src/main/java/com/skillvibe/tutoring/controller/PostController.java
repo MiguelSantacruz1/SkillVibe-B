@@ -33,17 +33,20 @@ public class PostController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Page<PostResponseDTO>>> getFeed(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
     ) {
-        Page<PostResponseDTO> feed = postService.getFeed(page, size);
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Page<PostResponseDTO> feed = postService.getFeed(page, size, principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Feed obtenido", feed));
     }
 
     @Operation(summary = "Obtener publicaciones destacadas")
     @GetMapping("/featured")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<PostResponseDTO>>> getFeatured() {
-        List<PostResponseDTO> featured = postService.getFeatured();
+    public ResponseEntity<ApiResponse<List<PostResponseDTO>>> getFeatured(Authentication authentication) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        List<PostResponseDTO> featured = postService.getFeatured(principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Publicaciones destacadas obtenidas", featured));
     }
 
@@ -91,16 +94,24 @@ public class PostController {
     @Operation(summary = "Dar like a una publicación")
     @PutMapping("/{postId}/like")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<PostResponseDTO>> likePost(@PathVariable Long postId) {
-        PostResponseDTO post = postService.toggleLike(postId);
+    public ResponseEntity<ApiResponse<PostResponseDTO>> likePost(
+            @PathVariable Long postId,
+            Authentication authentication
+    ) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        PostResponseDTO post = postService.toggleLike(postId, principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Like registrado", post));
     }
 
     @Operation(summary = "Marcar/desmarcar publicación como destacada (solo admin)")
     @PutMapping("/{postId}/featured")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PostResponseDTO>> toggleFeatured(@PathVariable Long postId) {
-        PostResponseDTO post = postService.toggleFeatured(postId);
+    public ResponseEntity<ApiResponse<PostResponseDTO>> toggleFeatured(
+            @PathVariable Long postId,
+            Authentication authentication
+    ) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        PostResponseDTO post = postService.toggleFeatured(postId, principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Estado destacado actualizado", post));
     }
 }

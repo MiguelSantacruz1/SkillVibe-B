@@ -16,6 +16,7 @@ public class PostResponseDTO {
     private String content;
     private String imageUrl;
     private Integer likesCount;
+    private Boolean likedByMe;
     private Boolean featured;
     private List<PostCommentResponseDTO> comments;
     private LocalDateTime createdAt;

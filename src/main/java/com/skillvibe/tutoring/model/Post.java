@@ -9,7 +9,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Representa una publicación del feed de la comunidad.
@@ -43,7 +45,14 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
-    /** Número de "likes" */
+    /** Usuarios que han dado like */
+    @ElementCollection
+    @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    @Builder.Default
+    private Set<Long> likedByUsers = new HashSet<>();
+
+    /** Número de "likes" (mantenemos esto para eficiencia o usamos likedByUsers.size()) */
     @Column(nullable = false)
     @Builder.Default
     private Integer likesCount = 0;

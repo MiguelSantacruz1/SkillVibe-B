@@ -8,6 +8,6 @@ import lombok.Data;
 public class CreateCommentDTO {
 
     @NotBlank(message = "El comentario no puede estar vacío.")
-    @Size(min = 1, max = 1000, message = "El comentario debe tener entre 1 y 1000 caracteres.")
+    @Size(min = 1, max = 200, message = "El comentario debe tener entre 1 y 200 caracteres.")
     private String content;
 }

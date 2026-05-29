@@ -43,10 +43,12 @@ public class PostService {
                 .build();
     }
 
-    private PostResponseDTO toDTO(Post post) {
+    private PostResponseDTO toDTO(Post post, Long requesterId) {
         List<PostCommentResponseDTO> comments = post.getComments().stream()
                 .map(this::toCommentDTO)
                 .collect(Collectors.toList());
+
+        boolean likedByMe = requesterId != null && post.getLikedByUsers().contains(requesterId);
 
         return PostResponseDTO.builder()
                 .id(post.getId())
@@ -56,6 +58,7 @@ public class PostService {
                 .content(post.getContent())
                 .imageUrl(post.getImageUrl())
                 .likesCount(post.getLikesCount())
+                .likedByMe(likedByMe)
                 .featured(post.getFeatured())
                 .comments(comments)
                 .createdAt(post.getCreatedAt())
@@ -66,18 +69,18 @@ public class PostService {
 
     /** Devuelve el feed paginado (todas las publicaciones, más recientes primero). */
     @Transactional(readOnly = true)
-    public Page<PostResponseDTO> getFeed(int page, int size) {
+    public Page<PostResponseDTO> getFeed(int page, int size, Long requesterId) {
         return postRepository
                 .findAllByOrderByCreatedAtDesc(PageRequest.of(page, size))
-                .map(this::toDTO);
+                .map(post -> toDTO(post, requesterId));
     }
 
     /** Devuelve las publicaciones destacadas (máximo 5). */
     @Transactional(readOnly = true)
-    public List<PostResponseDTO> getFeatured() {
+    public List<PostResponseDTO> getFeatured(Long requesterId) {
         return postRepository.findTop5Featured()
                 .stream()
-                .map(this::toDTO)
+                .map(post -> toDTO(post, requesterId))
                 .collect(Collectors.toList());
     }
 
@@ -95,7 +98,7 @@ public class PostService {
 
         Post saved = postRepository.save(post);
         log.info("Post creado por el usuario {} (id={})", author.getFullName(), authorId);
-        return toDTO(saved);
+        return toDTO(saved, authorId);
     }
 
     /** Elimina una publicación. Solo el autor o un admin puede hacerlo. */
@@ -118,6 +121,14 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessLogicException("Publicación no encontrada."));
 
+        long userCommentsCount = post.getComments().stream()
+                .filter(c -> c.getAuthor().getId().equals(authorId))
+                .count();
+
+        if (userCommentsCount >= 5) {
+            throw new BusinessLogicException("Has alcanzado el límite de 5 comentarios en esta publicación.");
+        }
+
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new BusinessLogicException("Usuario no encontrado."));
 
@@ -133,12 +144,18 @@ public class PostService {
 
     /** Da o quita un like a una publicación. */
     @Transactional
-    public PostResponseDTO toggleLike(Long postId) {
+    public PostResponseDTO toggleLike(Long postId, Long requesterId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessLogicException("Publicación no encontrada."));
 
-        post.setLikesCount(post.getLikesCount() + 1);
-        return toDTO(postRepository.save(post));
+        if (post.getLikedByUsers().contains(requesterId)) {
+            post.getLikedByUsers().remove(requesterId);
+        } else {
+            post.getLikedByUsers().add(requesterId);
+        }
+        
+        post.setLikesCount(post.getLikedByUsers().size());
+        return toDTO(postRepository.save(post), requesterId);
     }
 
     /** Marca o desmarca una publicación como destacada (solo admin). */
@@ -148,6 +165,6 @@ public class PostService {
                 .orElseThrow(() -> new BusinessLogicException("Publicación no encontrada."));
 
         post.setFeatured(!post.getFeatured());
-        return toDTO(postRepository.save(post));
+        return toDTO(postRepository.save(post), requesterId);
     }
 }
