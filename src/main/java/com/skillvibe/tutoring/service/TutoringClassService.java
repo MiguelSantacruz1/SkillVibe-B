@@ -164,9 +164,13 @@ public class TutoringClassService {
     // ─────────────────────────────────────────────
     @SuppressWarnings("null")
     @Transactional
-    public TutoringClass finishClass(Long tutoringClassId) {
+    public TutoringClass finishClass(Long tutoringClassId, Long tutorId) {
         TutoringClass TutoringClass = TutoringClassRepository.findById(tutoringClassId)
                 .orElseThrow(() -> new RuntimeException("Tutoría no encontrada con ID: " + tutoringClassId));
+
+        if (!TutoringClass.getTutor().getId().equals(tutorId)) {
+            throw new BusinessLogicException("No tienes permiso para finalizar esta clase.");
+        }
 
         // ── State Pattern: validar la transición antes de ejecutar la lógica ──
         TutoringClass.getStatus().validarTransicion(ClassStatus.COMPLETED);
