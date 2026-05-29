@@ -36,7 +36,7 @@ public class UserService {
         this.emailService = emailService;
     }
 
-    // ── Consultas básicas ─────────────────────────────────────────────────────
+    // ── Basic Queries ────────────────────────────────────────────────────────
 
     @SuppressWarnings("null")
     public User findById(Long id) {
@@ -44,7 +44,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
     }
 
-    // ── Registro de estudiante ────────────────────────────────────────────────
+    // ── Student Registration ─────────────────────────────────────────────────
 
     public User registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -70,7 +70,7 @@ public class UserService {
         return saved;
     }
 
-    // ── Registro de tutor ─────────────────────────────────────────────────────
+    // ── Tutor Registration ───────────────────────────────────────────────────
 
     @Transactional
     public TutorProfile registerTutor(TutorRegistrationRequest request) {
@@ -127,7 +127,7 @@ public class UserService {
         return user;
     }
 
-    // ── Verificación de correo ────────────────────────────────────────────────
+    // ── Email Verification ───────────────────────────────────────────────────
 
     @Transactional
     public void verifyEmail(String token) {
@@ -168,7 +168,7 @@ public class UserService {
         emailService.sendVerificationEmail(user.getEmail(), user.getFullName(), token);
     }
 
-    // ── Recuperación de contraseña ────────────────────────────────────────────
+    // ── Password Recovery ────────────────────────────────────────────────────
 
     @Transactional
     public void requestPasswordReset(String email) {
@@ -201,7 +201,7 @@ public class UserService {
         log.info("Contraseña restablecida para: {}", user.getEmail());
     }
 
-    // ── Utilidades ────────────────────────────────────────────────────────────
+    // ── Utilities ────────────────────────────────────────────────────────────
 
     private String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");

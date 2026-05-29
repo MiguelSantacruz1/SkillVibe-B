@@ -63,7 +63,7 @@ public class TutorService {
                 .build();
     }
 
-    public List<TutoringClass> getTutoriasByTutor(Long tutorId) {
+    public List<TutoringClass> getTutoringClassesByTutor(Long tutorId) {
         log.info("Obteniendo panel de tutorías para el tutor: {}", tutorId);
         return TutoringClassRepository.findByTutorId(tutorId);
     }

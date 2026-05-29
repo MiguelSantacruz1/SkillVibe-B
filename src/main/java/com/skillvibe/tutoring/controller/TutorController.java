@@ -69,7 +69,7 @@ public class TutorController {
 
     @GetMapping("/panel")
     @PreAuthorize("hasRole('TUTOR')")
-    public ResponseEntity<ApiResponse<String>> zonaPrivada() {
+    public ResponseEntity<ApiResponse<String>> privateZone() {
         String mensaje = tutorService.getTutorPanelMessage();
         return ResponseEntity.ok(ApiResponse.success(mensaje));
     }

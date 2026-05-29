@@ -61,7 +61,7 @@ public class ReviewService {
      */
     @SuppressWarnings("null")
     @Transactional
-    public ReviewResponseDTO crearReview(Long studentId, CreateReviewDTO dto) {
+    public ReviewResponseDTO createReview(Long studentId, CreateReviewDTO dto) {
         TutoringClass tutoringClass = tutoringClassRepository.findById(dto.getTutoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tutoría no encontrada con ID: " + dto.getTutoriaId()));
 

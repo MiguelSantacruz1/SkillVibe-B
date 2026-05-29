@@ -42,7 +42,7 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    // ── Registro y Login ─────────────────────────────────────────────────────
+    // ── Registration and Login ───────────────────────────────────────────────
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> register(@Valid @RequestBody RegisterRequest request) {
         User newUser = userService.registerUser(request);
@@ -75,11 +75,11 @@ public class AuthController {
 
     @GetMapping("/perfil-estudiante")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ApiResponse<String>> zonaEstudiantes() {
+    public ResponseEntity<ApiResponse<String>> studentZone() {
         return ResponseEntity.ok(ApiResponse.success("¡Acceso concedido!", null));
     }
 
-    // ── Verificación de correo ───────────────────────────────────────────────
+    // ── Email Verification ───────────────────────────────────────────────────
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
         userService.verifyEmail(token);
@@ -92,7 +92,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Se envió un nuevo correo de verificación.", null));
     }
 
-    // ── Recuperación de contraseña ───────────────────────────────────────────
+    // ── Password Recovery ────────────────────────────────────────────────────
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody EmailRequest body) {
         userService.requestPasswordReset(body.email());
@@ -106,7 +106,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("¡Contraseña restablecida con éxito! Ya puedes iniciar sesión.", null));
     }
 
-    // ── Records auxiliares ────────────────────────────────────────────────────
+    // ── Auxiliary Records ────────────────────────────────────────────────────
     record EmailRequest(@Email
             @NotBlank String email) {
 

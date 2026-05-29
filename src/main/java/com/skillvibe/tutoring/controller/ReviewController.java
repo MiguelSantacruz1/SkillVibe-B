@@ -37,12 +37,12 @@ public class ReviewController {
     )
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ApiResponse<ReviewResponseDTO>> crearReview(
+    public ResponseEntity<ApiResponse<ReviewResponseDTO>> createReview(
             @Valid @RequestBody CreateReviewDTO dto,
             Authentication authentication
     ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        ReviewResponseDTO response = reviewService.crearReview(principal.getId(), dto);
+        ReviewResponseDTO response = reviewService.createReview(principal.getId(), dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Reseña creada exitosamente", response));
     }
