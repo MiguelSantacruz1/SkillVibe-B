@@ -69,44 +69,44 @@ class ReviewServiceTest {
     }
 
     @Test
-    void crearReview_whenTutoriaNotFinalizada_throwsException() {
+    void createReview_whenTutoriaNotFinalizada_throwsException() {
         // Arrange
         tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.PROGRAMMED);
         CreateReviewDTO dto = new CreateReviewDTO();
-        dto.setTutoriaId(10L);
+        dto.setTutoringClassId(10L);
 
         when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
 
         // Act & Assert
         BusinessLogicException ex = assertThrows(BusinessLogicException.class, () -> {
-            reviewService.crearReview(1L, dto);
+            reviewService.createReview(1L, dto);
         });
         assertEquals("Solo puedes calificar tutorías que hayan finalizado.", ex.getMessage());
     }
 
     @Test
-    void crearReview_whenDuplicate_throwsException() {
+    void createReview_whenDuplicate_throwsException() {
         // Arrange
         tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
         CreateReviewDTO dto = new CreateReviewDTO();
-        dto.setTutoriaId(10L);
+        dto.setTutoringClassId(10L);
 
         when(tutoringClassRepository.findById(10L)).thenReturn(Optional.of(tutoringClass));
         when(reviewRepository.existsByTutoringClassId(10L)).thenReturn(true);
 
         // Act & Assert
         BusinessLogicException ex = assertThrows(BusinessLogicException.class, () -> {
-            reviewService.crearReview(1L, dto);
+            reviewService.createReview(1L, dto);
         });
         assertEquals("Ya existe una reseña para esta tutoría.", ex.getMessage());
     }
 
     @Test
-    void crearReview_updatesAverageRating() {
+    void createReview_updatesAverageRating() {
         // Arrange
         tutoringClass.setStatus(com.skillvibe.tutoring.model.ClassStatus.COMPLETED);
         CreateReviewDTO dto = new CreateReviewDTO();
-        dto.setTutoriaId(10L);
+        dto.setTutoringClassId(10L);
         dto.setRating(5);
         dto.setComment("Great!");
 
@@ -129,7 +129,7 @@ class ReviewServiceTest {
         when(reviewRepository.countByTutorId(tutorUser.getId())).thenReturn(2L);
 
         // Act
-        ReviewResponseDTO result = reviewService.crearReview(1L, dto);
+        ReviewResponseDTO result = reviewService.createReview(1L, dto);
 
         // Assert
         assertNotNull(result);

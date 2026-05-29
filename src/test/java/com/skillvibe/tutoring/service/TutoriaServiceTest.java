@@ -83,7 +83,7 @@ class TutoriaServiceTest {
         BookingRequestDTO request = new BookingRequestDTO();
         request.setTutorId(tutorUser.getId());
         request.setSubject("Math");
-        request.setFechaHora(LocalDateTime.now().plusDays(1));
+        request.setScheduledAt(LocalDateTime.now().plusDays(1));
 
         when(userRepository.findById(student.getId())).thenReturn(Optional.of(student));
         when(tutorProfileRepository.findByUserId(request.getTutorId())).thenReturn(Optional.of(tutorProfile));
