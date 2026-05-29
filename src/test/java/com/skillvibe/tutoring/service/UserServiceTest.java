@@ -45,6 +45,7 @@ class UserServiceTest {
         testUser.setPassword("encoded_password");
         testUser.setFullName("Test User");
         testUser.setRole(Role.STUDENT);
+        testUser.setEmailVerified(true);
 
         loginRequest = new LoginRequest();
         loginRequest.setEmail("test@example.com");

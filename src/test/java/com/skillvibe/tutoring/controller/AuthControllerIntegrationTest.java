@@ -47,6 +47,7 @@ class AuthControllerIntegrationTest {
         user.setPassword(passwordEncoder.encode("password123"));
         user.setFullName("Integration Test");
         user.setRole(com.skillvibe.tutoring.model.Role.STUDENT);
+        user.setEmailVerified(true);
         userRepository.save(user);
     }
 
