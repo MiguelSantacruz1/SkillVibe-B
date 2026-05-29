@@ -20,14 +20,14 @@ import java.util.UUID;
 @Component
 public class JitsiVideoRoomProvider implements VideoRoomProvider {
 
-    private static final String JITSI_BASE_URL = "https://meet.jit.si/";
-    private static final String ROOM_PREFIX = "SkillVibe-";
+    private static final String VERCEL_BASE_URL = "https://frontend-intelligent-table-dp2tk3c8z.vercel.app/";
+    private static final String ROOM_PREFIX = "room-";
 
     @Override
     public String generateMeetingLink(String sessionId) {
         String uniquePart = UUID.randomUUID().toString().substring(0, 8);
         String roomName = ROOM_PREFIX + uniquePart;
-        String meetingLink = JITSI_BASE_URL + roomName;
+        String meetingLink = VERCEL_BASE_URL + roomName;
         log.info("VideoRoom generado para sessionId [{}]: {}", sessionId, meetingLink);
         return meetingLink;
     }
