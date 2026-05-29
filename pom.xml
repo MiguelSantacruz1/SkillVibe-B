@@ -92,6 +92,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+        <!-- Spring Mail para verificación de correo y recuperación de contraseña -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <!-- Caffeine Cache para Rate Limiting -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
