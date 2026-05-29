@@ -33,9 +33,6 @@ public class EmailService {
     @Async
     public void sendVerificationEmail(String toEmail, String fullName, String token) {
         String link = frontendUrl + "/verify-email?token=" + token;
-        log.info("==================================================");
-        log.info("ENLACE DE VERIFICACION PARA {}: {}", toEmail, link);
-        log.info("==================================================");
 
         String html = buildHtml(
                 "Verifica tu correo",
@@ -52,9 +49,6 @@ public class EmailService {
     @Async
     public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
-        log.info("==================================================");
-        log.info("ENLACE DE RECUPERACION PARA {}: {}", toEmail, link);
-        log.info("==================================================");
 
         String html = buildHtml(
                 "Restablecer contraseña",
