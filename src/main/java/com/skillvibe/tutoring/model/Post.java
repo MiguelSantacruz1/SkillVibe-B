@@ -39,8 +39,8 @@ public class Post {
     @Size(min = 1, max = 2000)
     private String content;
 
-    /** URL de imagen opcional */
-    @Column(length = 512)
+    /** URL de imagen opcional o base64 */
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     /** Número de "likes" */
