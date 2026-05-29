@@ -26,7 +26,14 @@ public class JwtService {
     public void init() {
         try {
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] keyBytes = md.digest(secretString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] keyBytes;
+            if (secretString == null || secretString.trim().isEmpty() || secretString.length() < 10) {
+                System.err.println("CRITICAL WARNING: JWT_SECRET is not set or too short! Generating a secure random key for this session.");
+                keyBytes = new byte[32];
+                new java.security.SecureRandom().nextBytes(keyBytes);
+            } else {
+                keyBytes = md.digest(secretString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
             this.SECRET_KEY = Keys.hmacShaKeyFor(keyBytes);
         } catch (Exception e) {
             throw new RuntimeException("Error initializing JWT secret key", e);
